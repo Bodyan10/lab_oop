@@ -1,38 +1,49 @@
 #ifndef SHAPE_H
 #define SHAPE_H
 
+#include <QPoint>
 #include <QColor>
 #include <QRect>
-#include <QPoint>
-#include <string>
+#include <QSize>
 #include <QPainter>
+#include <string>
 
-class Shape
-{
+enum class ShapeType {
+    Rectangle = 0,
+    Circle = 1,
+    Triangle = 2,
+    Line = 3,
+    None = 100
+};
+
+class Shape {
 public:
-    Shape();
+    Shape(QPoint coordinates = QPoint(), QSize size = QSize(), QColor color = Qt::blue);
     virtual ~Shape();
 
-    virtual void draw(QPainter* painter) const = 0;
-    virtual void move(const QPoint& delta) = 0;
-    virtual void resize(const QPoint& startPoint, const QPoint& endPoint) = 0;
-    virtual bool contains(const QPoint& point) const = 0;
-    virtual QRect boundingRect() const = 0;
-    virtual Shape* clone() const = 0;
+    virtual void move(int x, int y);
+    virtual void resize(int x, int y);
+    virtual void changeColor(QColor color);
 
-    // Новый метод для создания фигуры по двум точкам
-    virtual void createFromPoints(const QPoint& startPoint, const QPoint& endPoint) = 0;
+    virtual ShapeType type() const { return ShapeType::None; }
 
-    void setColor(const QColor& color);
-    bool isOutOfBounds(const QRect& workspaceBounds) const;
+    QSize getSize() const;
+    QPoint getPos() const;
+    QPoint getCentralPos() const;
+    QColor getColor() const;
+    virtual QRect getBounds() const;
+
+    virtual bool hasPointIn(QPoint point) const = 0;
+    virtual void draw(QPainter &painter) const = 0;
+
     void setSelected(bool selected);
-
-    QColor color() const;
     bool isSelected() const;
     std::string name() const;
 
 protected:
-    QColor color_ = Qt::blue;
+    QPoint pos_;
+    QSize size_;
+    QColor color_;
     bool isSelected_ = false;
     std::string name_;
 };

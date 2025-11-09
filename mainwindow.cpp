@@ -8,9 +8,9 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    printf("Главное окно создано\n");
+    printf("MainWindow created\n");
 
-    // Создаем группу для инструментов (взаимоисключающие кнопки)
+    // Create tool group (mutually exclusive buttons)
     toolGroup = new QActionGroup(this);
     toolGroup->addAction(ui->actionSelectTool);
     toolGroup->addAction(ui->actionRectangleTool);
@@ -18,20 +18,20 @@ MainWindow::MainWindow(QWidget *parent)
     toolGroup->addAction(ui->actionTriangleTool);
     toolGroup->addAction(ui->actionLineTool);
 
-    // Подключаем сигналы инструментов
+    // Connect tool signals
     connect(ui->actionSelectTool, &QAction::triggered, this, &MainWindow::onSelectTool);
     connect(ui->actionRectangleTool, &QAction::triggered, this, &MainWindow::onRectangleTool);
     connect(ui->actionCircleTool, &QAction::triggered, this, &MainWindow::onCircleTool);
     connect(ui->actionTriangleTool, &QAction::triggered, this, &MainWindow::onTriangleTool);
     connect(ui->actionLineTool, &QAction::triggered, this, &MainWindow::onLineTool);
 
-    // Подключаем остальные действия
+    // Connect other actions
     connect(ui->actionChangeColor, &QAction::triggered, this, &MainWindow::onChangeColor);
     connect(ui->actionDelete, &QAction::triggered, this, &MainWindow::onDeleteSelected);
     connect(ui->actionSelectAll, &QAction::triggered, this, &MainWindow::onSelectAll);
     connect(ui->actionExit, &QAction::triggered, this, &MainWindow::onExit);
 
-    // Устанавливаем начальный инструмент
+    // Set initial tool
     ui->actionSelectTool->setChecked(true);
     ui->paintArea->setCurrentTool(Tool::Select);
 }
@@ -39,58 +39,61 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow()
 {
     delete ui;
-    printf("Главное окно удалено\n");
+    printf("MainWindow destroyed\n");
 }
 
 void MainWindow::onSelectTool()
 {
     ui->paintArea->setCurrentTool(Tool::Select);
-    printf("Инструмент: Выделение\n");
+    printf("Tool: Selection\n");
 }
 
 void MainWindow::onRectangleTool()
 {
     ui->paintArea->setCurrentTool(Tool::Rectangle);
-    printf("Инструмент: Прямоугольник\n");
+    printf("Tool: Rectangle\n");
 }
 
 void MainWindow::onCircleTool()
 {
     ui->paintArea->setCurrentTool(Tool::Circle);
-    printf("Инструмент: Круг\n");
+    printf("Tool: Circle\n");
 }
 
 void MainWindow::onTriangleTool()
 {
     ui->paintArea->setCurrentTool(Tool::Triangle);
-    printf("Инструмент: Треугольник\n");
+    printf("Tool: Triangle\n");
 }
 
 void MainWindow::onLineTool()
 {
     ui->paintArea->setCurrentTool(Tool::Line);
-    printf("Инструмент: Отрезок\n");
+    printf("Tool: Line\n");
 }
 
 void MainWindow::onChangeColor()
 {
-    QColor color = QColorDialog::getColor(Qt::blue, this, "Выберите цвет");
+    printf("Color dialog opened\n");
+    QColor color = QColorDialog::getColor(Qt::blue, this, "Select Color");
     if (color.isValid()) {
-        ui->paintArea->setCurrentColor(color);
-        printf("Цвет изменен через диалог\n");
+        ui->paintArea->applyColorToSelected(color);
+        printf("Color changed via dialog to (%d, %d, %d)\n", color.red(), color.green(), color.blue());
+    } else {
+        printf("Color selection cancelled\n");
     }
 }
 
 void MainWindow::onDeleteSelected()
 {
     ui->paintArea->deleteSelected();
-    printf("Удаление выделенных объектов\n");
+    printf("Delete selected objects\n");
 }
 
 void MainWindow::onSelectAll()
 {
-    // Логика выделения всех уже в PaintAreaWidget
-    printf("Выделить все\n");
+    ui->paintArea->selectAll();
+    printf("Select all objects\n");
 }
 
 void MainWindow::onExit()

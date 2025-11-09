@@ -6,9 +6,13 @@
 #include <QPainter>
 #include <QKeyEvent>
 #include <QResizeEvent>
-#include "Container.h"
+#include "container.h"
 #include "shape.h"
-
+#include "rectangle.h"
+#include "circle.h"
+#include "triangle.h"
+#include "line.h"
+#include "selection.h"
 
 enum class Tool {
     Select,
@@ -28,9 +32,11 @@ public:
 
     void setCurrentTool(Tool tool);
     void setCurrentColor(const QColor& color);
+    void applyColorToSelected(const QColor& color);
 
 public slots:
     void deleteSelected();
+    void selectAll();
 
 protected:
     void paintEvent(QPaintEvent *event) override;
@@ -42,7 +48,8 @@ protected:
     void resizeEvent(QResizeEvent *event) override;
 
 private:
-    Container<Shape>* shapesContainer;
+    Container<Shape*> shapesContainer;
+    Selection selection;
     bool ctrlPressed;
     Tool currentTool;
     QColor currentColor;
@@ -51,11 +58,11 @@ private:
     QPoint creationStartPoint;
     Shape* tempShape;
 
+    bool isResizing;
+    QPoint resizeStartPoint;
+
     std::vector<Shape*> findShapesAtPoint(const QPoint& point);
     void clearSelection();
-    void deleteSelectedShapes();
-    void moveSelectedShapes(const QPoint& delta);
-    bool canMoveShapes(const QPoint& delta);
 };
 
 #endif // PAINTAREAWIDGET_H
