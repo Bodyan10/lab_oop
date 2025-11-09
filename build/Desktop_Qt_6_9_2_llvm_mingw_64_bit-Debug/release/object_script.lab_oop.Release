@@ -1,0 +1,10 @@
+release/circle.o
+release/line.o
+release/main.o
+release/mainwindow.o
+release/paintareawidget.o
+release/rectangle.o
+release/shape.o
+release/triangle.o
+release/moc_mainwindow.o
+release/moc_paintareawidget.o
