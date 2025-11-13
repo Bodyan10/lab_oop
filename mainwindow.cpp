@@ -7,6 +7,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    setCentralWidget(ui->paintArea);
 
     printf("MainWindow created\n");
 
@@ -75,7 +76,7 @@ void MainWindow::onLineTool()
 void MainWindow::onChangeColor()
 {
     printf("Color dialog opened\n");
-    QColor color = QColorDialog::getColor(Qt::blue, this, "Select Color");
+    QColor color = QColorDialog::getColor(Qt::red, this, "Select Color");
     if (color.isValid()) {
         ui->paintArea->applyColorToSelected(color);
         printf("Color changed via dialog to (%d, %d, %d)\n", color.red(), color.green(), color.blue());

@@ -1,22 +1,69 @@
 #include "selection.h"
 #include <QBrush>
-#include <algorithm>
 #include <cstdio>
 
 Selection::Selection() {
     printf("Selection created\n");
 }
 
+Selection::~Selection() {
+    // НЕ удаляем объекты, так как они принадлежат основному контейнеру
+    selectedShapes.clear();
+    printf("Selection destroyed\n");
+}
+
+void Selection::addObject(Shape* shape) {
+    selectedShapes.push_back(shape);
+}
+
+void Selection::removeAt(int index) {
+    if (index >= 0 && index < (int)selectedShapes.size()) {
+        selectedShapes.erase(selectedShapes.begin() + index);
+    }
+}
+
+void Selection::removeElement(Shape* element) {
+    for (int i = 0; i < getCount(); i++) {
+        if (getObject(i) == element) {
+            removeAt(i);
+            return;
+        }
+    }
+}
+
+
+void Selection::clear() {
+    selectedShapes.clear();
+}
+
+int Selection::getCount() const {
+    return selectedShapes.size();
+}
+
+Shape* Selection::getObject(int index) {
+    if (index >= 0 && index < (int)selectedShapes.size()) {
+        return selectedShapes[index];
+    }
+    return nullptr;
+}
+
+bool Selection::hasElement(Shape* el) const {
+    for (Shape* obj : selectedShapes) {
+        if (obj == el) return true;
+    }
+    return false;
+}
+
 void Selection::draw(QPainter& painter) const {
-    if (Container<Shape*>::size() == 0) {
+    if (selectedShapes.empty()) {
         return;
     }
 
     QRect r = getArea();
 
-    // Рисуем ПУНКТИРНУЮ рамку выделения (полупрозрачную)
-    painter.setPen(QPen(QColor(0, 0, 255, 128), 2, Qt::DashLine)); // Полупрозрачный синий
-    painter.setBrush(Qt::NoBrush); // Без заливки!
+    // Рисуем рамку выделения (полупрозрачную)
+    painter.setPen(QPen(QColor(0, 0, 255, 128), 2, Qt::DashLine));
+    painter.setBrush(Qt::NoBrush);
     painter.drawRect(r);
 
     // Рисуем маркеры изменения размера
@@ -44,20 +91,20 @@ void Selection::draw(QPainter& painter) const {
 }
 
 QRect Selection::getArea() const {
-    if (Container<Shape*>::size() == 0) {
+    if (selectedShapes.empty()) {
         return QRect();
     }
 
-    QRect r = at(0)->getBounds();
-    for (int i = 1; i < Container<Shape*>::size(); i++) {
-        r = r.united(at(i)->getBounds());
+    QRect r = selectedShapes[0]->getBounds();
+    for (size_t i = 1; i < selectedShapes.size(); i++) {
+        r = r.united(selectedShapes[i]->getBounds());
     }
     return r;
 }
 
 bool Selection::hasObjectInPoint(QPoint point) const {
-    for (const auto& obj : *this) {
-        if (obj->hasPointIn(point)) {
+    for (Shape* obj : selectedShapes) {
+        if (obj && obj->hasPointIn(point)) {
             return true;
         }
     }
@@ -66,7 +113,9 @@ bool Selection::hasObjectInPoint(QPoint point) const {
 
 Selection::MousePosState Selection::checkMousePos(QPoint pos) {
     QRect r = getArea();
-    if (r.isNull()) return MousePosState::None;
+    if (r.isNull()) {
+        return MousePosState::None;
+    }
 
     int handleSize = 8;
     QPoint alpha(-handleSize/2, -handleSize/2);
@@ -121,9 +170,11 @@ Selection::MousePosState Selection::checkMousePos(QPoint pos) {
 }
 
 void Selection::moveSelections(int diffX, int diffY) {
-    for (const auto& obj : *this) {
-        QPoint newPos = obj->getPos() + QPoint(diffX, diffY);
-        obj->move(newPos.x(), newPos.y());
+    for (Shape* obj : selectedShapes) {
+        if (obj) {
+            QPoint newPos = obj->getPos() + QPoint(diffX, diffY);
+            obj->move(newPos.x(), newPos.y());
+        }
     }
     printf("Selection moved by (%d, %d)\n", diffX, diffY);
 }
@@ -132,6 +183,7 @@ bool Selection::resizeSelections(int diffX, int diffY) {
     QRect bounds = getArea();
     if (bounds.isNull()) return false;
 
+    // ВЫЧИСЛЯЕМ НОВЫЕ ГРАНИЦЫ ВЫДЕЛЕНИЯ
     QPoint newPos = bounds.topLeft();
     QSize newSize = bounds.size();
 
@@ -169,52 +221,66 @@ bool Selection::resizeSelections(int diffX, int diffY) {
         return false;
     }
 
-    // Проверяем минимальный размер
-    if (newSize.width() < 5) newSize.setWidth(5);
-    if (newSize.height() < 5) newSize.setHeight(5);
+    // МИНИМАЛЬНЫЙ РАЗМЕР ВЫДЕЛЕНИЯ
+    if (newSize.width() < 10) newSize.setWidth(10);
+    if (newSize.height() < 10) newSize.setHeight(10);
 
-    // Применяем изменения ко всем выделенным объектам
-    for (auto& obj : *this) {
-        QPointF relativePos(
-            static_cast<float>(obj->getPos().x() - bounds.x()) / bounds.width(),
-            static_cast<float>(obj->getPos().y() - bounds.y()) / bounds.height()
-            );
-        QSizeF relativeSize(
-            static_cast<float>(obj->getSize().width()) / bounds.width(),
-            static_cast<float>(obj->getSize().height()) / bounds.height()
-            );
+    // ЕДИНЫЙ АЛГОРИТМ МАСШТАБИРОВАНИЯ
+    scaleToNewBounds(QRect(newPos, newSize));
 
-        QPoint objNewPos(
-            newPos.x() + relativePos.x() * newSize.width(),
-            newPos.y() + relativePos.y() * newSize.height()
-            );
-        QSize objNewSize(
-            relativeSize.width() * newSize.width(),
-            relativeSize.height() * newSize.height()
-            );
-
-        obj->move(objNewPos.x(), objNewPos.y());
-        obj->resize(objNewSize.width(), objNewSize.height());
-    }
-
-    printf("Selection resized to %dx%d\n", newSize.width(), newSize.height());
+    printf("Selection resized from %dx%d to %dx%d\n",
+           bounds.width(), bounds.height(), newSize.width(), newSize.height());
     return true;
 }
 
-void Selection::updateRelativeInfo() {
-    relativeInfo_.clear();
-    QRect bounds = getArea();
+void Selection::scaleToNewBounds(const QRect& newBounds) {
+    QRect oldBounds = getArea();
+    if (oldBounds.isNull()) return;
 
-    for (auto& obj : *this) {
-        QPointF relativePos(
-            static_cast<float>(obj->getPos().x() - bounds.x()) / bounds.width(),
-            static_cast<float>(obj->getPos().y() - bounds.y()) / bounds.height()
+    // ВЫЧИСЛЯЕМ КОЭФФИЦИЕНТЫ МАСШТАБИРОВАНИЯ
+    double scaleX = static_cast<double>(newBounds.width()) / oldBounds.width();
+    double scaleY = static_cast<double>(newBounds.height()) / oldBounds.height();
+
+    printf("Scaling: old(%d,%d %dx%d) new(%d,%d %dx%d) scale(%.3f,%.3f)\n",
+           oldBounds.x(), oldBounds.y(), oldBounds.width(), oldBounds.height(),
+           newBounds.x(), newBounds.y(), newBounds.width(), newBounds.height(),
+           scaleX, scaleY);
+
+    // ПРИМЕНЯЕМ МАСШТАБИРОВАНИЕ КО ВСЕМ ОБЪЕКТАМ
+    for (Shape* obj : selectedShapes) {
+        if (!obj) continue;
+
+        // ТЕКУЩИЕ КООРДИНАТЫ ОТНОСИТЕЛЬНО СТАРОЙ ОБЛАСТИ
+        QPoint offset = obj->getPos() - oldBounds.topLeft();
+        QSize currentSize = obj->getSize();
+
+        // НОВЫЕ КООРДИНАТЫ ОТНОСИТЕЛЬНО НОВОЙ ОБЛАСТИ
+        QPoint newOffset(
+            qRound(offset.x() * scaleX),
+            qRound(offset.y() * scaleY)
             );
-        QSizeF relativeSize(
-            static_cast<float>(obj->getSize().width()) / bounds.width(),
-            static_cast<float>(obj->getSize().height()) / bounds.height()
+        QSize newSize(
+            qRound(currentSize.width() * scaleX),
+            qRound(currentSize.height() * scaleY)
             );
 
-        relativeInfo_[obj] = std::make_pair(relativePos, relativeSize);
+        // МИНИМАЛЬНЫЙ РАЗМЕР ОБЪЕКТА
+        newSize.setWidth(std::max(5, newSize.width()));
+        newSize.setHeight(std::max(5, newSize.height()));
+
+        // НОВАЯ ПОЗИЦИЯ
+        QPoint newPos = newBounds.topLeft() + newOffset;
+
+        obj->move(newPos.x(), newPos.y());
+        obj->resize(newSize.width(), newSize.height());
+
+        printf("Object scaled: pos(%d->%d) size(%d->%d) scale(%.3f,%.3f)\n",
+               offset.x(), newOffset.x(), currentSize.width(), newSize.width(),
+               scaleX, scaleY);
     }
+}
+
+bool Selection::checkBorder(const QRect& widgetBounds) {
+    QRect shapeBounds = getArea();
+    return widgetBounds.contains(shapeBounds);
 }

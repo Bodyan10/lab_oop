@@ -9,6 +9,28 @@ Rectangle::Rectangle(QPoint coordinates, QSize size, QColor color)
            coordinates.x(), coordinates.y(), size.width(), size.height());
 }
 
+Rectangle::Rectangle(const Rectangle& other)
+    : Shape(other.pos_, other.size_, other.color_) {
+    name_ = "Rectangle";
+    isSelected_ = other.isSelected_;
+    printf("Rectangle copied\n");
+}
+
+Rectangle& Rectangle::operator=(const Rectangle& other) {
+    if (this != &other) {
+        pos_ = other.pos_;
+        size_ = other.size_;
+        color_ = other.color_;
+        isSelected_ = other.isSelected_;
+    }
+    printf("Rectangle assigned\n");
+    return *this;
+}
+
+Rectangle::~Rectangle() {
+    printf("Rectangle destroyed\n");
+}
+
 bool Rectangle::hasPointIn(QPoint point) const {
     QRect r(pos_, size_);
     bool contains = r.contains(point);

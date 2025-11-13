@@ -1,101 +1,87 @@
 #include "line.h"
 #include <QPainter>
+#include <cmath>
 #include <cstdio>
-#include <algorithm>
 
-Line::Line(const QPoint& start, const QPoint& end)
-    : start_(start), end_(end)
-{
-    name_ = "Отрезок";
-    printf("Создан отрезок: (%d,%d) - (%d,%d)\n",
-           start_.x(), start_.y(), end_.x(), end_.y());
-}
-
-Line::~Line()
-{
-    printf("Отрезок удален\n");
+Line::Line(QPoint coordinates, QSize size, QColor color)
+    : Shape(coordinates, size, color) {
+    name_ = "Line";
+    printf("Line created from (%d, %d) to (%d, %d)\n",
+           coordinates.x(), coordinates.y(),
+           coordinates.x() + size.width(), coordinates.y() + size.height());
 }
 
 Line::Line(const Line& other)
-    : start_(other.start_), end_(other.end_)
-{
-    name_ = "Отрезок";
-    color_ = other.color_;
+    : Shape(other.pos_, other.size_, other.color_), lineWidth_(other.lineWidth_) {
+    name_ = "Line";
     isSelected_ = other.isSelected_;
+    printf("Line copied\n");
 }
 
-Line& Line::operator=(const Line& other)
-{
+Line& Line::operator=(const Line& other) {
     if (this != &other) {
-        start_ = other.start_;
-        end_ = other.end_;
+        pos_ = other.pos_;
+        size_ = other.size_;
         color_ = other.color_;
         isSelected_ = other.isSelected_;
+        lineWidth_ = other.lineWidth_;
     }
+    printf("Line assigned\n");
     return *this;
 }
 
-Shape* Line::clone() const
-{
-    return new Line(*this);
+Line::~Line() {
+    printf("Line destroyed\n");
 }
 
-void Line::draw(QPainter* painter) const
-{
-    if (!painter) return;
+bool Line::hasPointIn(QPoint point) const {
+    QPoint p1 = pos_;
+    QPoint p2 = pos_ + QPoint(size_.width(), size_.height());
 
-    if (isSelected_) {
-        painter->setPen(QPen(Qt::red, 3));
+    // Calculate distance from point to line
+    double A = point.x() - p1.x();
+    double B = point.y() - p1.y();
+    double C = p2.x() - p1.x();
+    double D = p2.y() - p1.y();
+
+    double dot = A * C + B * D;
+    double len_sq = C * C + D * D;
+    double param = -1;
+    if (len_sq != 0) param = dot / len_sq;
+
+    double xx, yy;
+    if (param < 0) {
+        xx = p1.x();
+        yy = p1.y();
+    } else if (param > 1) {
+        xx = p2.x();
+        yy = p2.y();
     } else {
-        painter->setPen(QPen(color_, 2));
+        xx = p1.x() + param * C;
+        yy = p1.y() + param * D;
     }
 
-    painter->drawLine(start_, end_);
+    double dx = point.x() - xx;
+    double dy = point.y() - yy;
+    double distance = sqrt(dx * dx + dy * dy);
+
+    bool contains = distance <= lineWidth_ + 2; // +2 for selection tolerance
+    printf("Line contains point (%d, %d): %s\n", point.x(), point.y(), contains ? "true" : "false");
+    return contains;
 }
 
-void Line::move(const QPoint& delta)
-{
-    start_ += delta;
-    end_ += delta;
-}
+void Line::draw(QPainter& painter) const {
+    QPoint p1 = pos_;
+    QPoint p2 = pos_ + QPoint(size_.width(), size_.height());
 
-void Line::resize(const QPoint& anchorPoint, const QPoint& newPoint)
-{
-    // При создании линии anchorPoint - это начальная точка
-    // newPoint - это конечная точка
-    end_ = newPoint;
-    printf("Линия изменена: (%d,%d) - (%d,%d)\n",
-           start_.x(), start_.y(), end_.x(), end_.y());
-}
+    if (isSelected_) {
+        painter.setPen(QPen(Qt::red, lineWidth_ + 2));
+    } else {
+        painter.setPen(QPen(color_, lineWidth_));
+    }
 
-bool Line::contains(const QPoint& point) const
-{
-    QRect bounds = boundingRect().adjusted(-3, -3, 3, 3);
-    return bounds.contains(point);
-}
-
-QRect Line::boundingRect() const
-{
-    int minX = std::min(start_.x(), end_.x());
-    int maxX = std::max(start_.x(), end_.x());
-    int minY = std::min(start_.y(), end_.y());
-    int maxY = std::max(start_.y(), end_.y());
-
-    return QRect(minX, minY, maxX - minX, maxY - minY);
-}
-
-QPoint Line::startPoint() const
-{
-    return start_;
-}
-
-QPoint Line::endPoint() const
-{
-    return end_;
-}
-
-void Line::createFromPoints(const QPoint& startPoint, const QPoint& endPoint)
-{
-    start_ = startPoint;
-    end_ = endPoint;
+    painter.drawLine(p1, p2);
+    printf("Line drawn from (%d, %d) to (%d, %d), color (%d,%d,%d)\n",
+           p1.x(), p1.y(), p2.x(), p2.y(),
+           color_.red(), color_.green(), color_.blue());
 }

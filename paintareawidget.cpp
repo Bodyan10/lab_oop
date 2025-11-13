@@ -1,13 +1,20 @@
-#include "paintAreaWidget.h"
-#include <cstdio>
-#include <algorithm>
-#include <QApplication>
+#include <QWidget>
+#include <QMouseEvent>
+#include <QPainter>
+#include <QKeyEvent>
+#include <QResizeEvent>
+#include <paintareawidget.h>
+#include <ellipse.h>
+#include <triangle.h>
+#include <rectangle.h>
+#include <line.h>
+
 
 PaintAreaWidget::PaintAreaWidget(QWidget *parent)
     : QWidget(parent),
     ctrlPressed(false),
     currentTool(Tool::Select),
-    currentColor(Qt::blue),
+    currentColor(Qt::red),
     isCreatingShape(false),
     creationStartPoint(QPoint()),
     tempShape(nullptr),
@@ -17,76 +24,57 @@ PaintAreaWidget::PaintAreaWidget(QWidget *parent)
     printf("PaintAreaWidget created\n");
     setFocusPolicy(Qt::StrongFocus);
     setMouseTracking(true);
-
     setStyleSheet("background-color: white;");
-    QPalette pal = palette();
-    pal.setColor(QPalette::Window, Qt::white);
-    setPalette(pal);
-    setAutoFillBackground(true);
 }
 
-PaintAreaWidget::~PaintAreaWidget()
-{
-    if (tempShape) delete tempShape;
+PaintAreaWidget::~PaintAreaWidget() {
+    if (tempShape) {
+        delete tempShape;
+    }
     printf("PaintAreaWidget destroyed\n");
 }
 
-void PaintAreaWidget::setCurrentTool(Tool tool)
-{
+void PaintAreaWidget::setCurrentTool(Tool tool) {
     currentTool = tool;
-    const char* toolNames[] = {"Selection", "Rectangle", "Circle", "Triangle", "Line"};
-    printf("Tool changed: %s\n", toolNames[static_cast<int>(tool)]);
 }
 
-void PaintAreaWidget::setCurrentColor(const QColor& color)
-{
+void PaintAreaWidget::setCurrentColor(const QColor& color) {
     currentColor = color;
     printf("Current color changed to (%d, %d, %d)\n", color.red(), color.green(), color.blue());
 }
 
-void PaintAreaWidget::applyColorToSelected(const QColor& color)
-{
-    if (selection.size() > 0) {
-        for (int i = 0; i < selection.size(); i++) {
-            selection.at(i)->changeColor(color);
+void PaintAreaWidget::applyColorToSelected(const QColor& color) {
+    if (selection.getCount() > 0) {
+        for (int i = 0; i < selection.getCount(); i++) {
+            selection.getObject(i)->changeColor(color);
         }
         currentColor = color;
         update();
-        printf("Color applied to %zu selected shapes\n", selection.size());
+        printf("Color applied to %d selected shapes\n", selection.getCount());
     } else {
         currentColor = color;
         printf("No shapes selected. Color set for future shapes\n");
     }
 }
 
-void PaintAreaWidget::deleteSelected()
-{
-    if (selection.size() > 0) {
-        for (int i = 0; i < selection.size(); i++) {
-            Shape* shape = selection.at(i);
-            shapesContainer.removeElement(shape);
-            delete shape;
-        }
-        selection.clear();
-        update();
-        printf("Deleted %zu selected shapes\n", selection.size());
-    }
-}
-
-void PaintAreaWidget::selectAll()
-{
+void PaintAreaWidget::deleteSelected() {
     selection.clear();
-    for (int i = 0; i < shapesContainer.size(); i++) {
-        selection.addElement(shapesContainer.at(i));
-        shapesContainer.at(i)->setSelected(true);
-    }
-    selection.updateRelativeInfo();
+    shapesContainer.removeSelected();
     update();
-    printf("All %zu shapes selected\n", shapesContainer.size());
 }
 
-void PaintAreaWidget::paintEvent(QPaintEvent *event)
-{
+void PaintAreaWidget::selectAll() {
+    clearSelection();
+    for (int i = 0; i < shapesContainer.getCount(); i++) {
+        Shape* shape = shapesContainer.getObject(i);
+        selection.addObject(shape);
+        shape->setSelected(true);
+    }
+    update();
+    printf("All %d shapes selected\n", shapesContainer.getCount());
+}
+
+void PaintAreaWidget::paintEvent(QPaintEvent *event) {
     Q_UNUSED(event);
 
     QPainter painter(this);
@@ -94,44 +82,27 @@ void PaintAreaWidget::paintEvent(QPaintEvent *event)
 
     // 1. ЯВНО рисуем белый фон
     painter.fillRect(rect(), Qt::white);
-    printf("DEBUG: White background drawn, rect: %dx%d\n", width(), height());
 
-    // 2. Отладочная информация
-    printf("DEBUG: PaintEvent - shapes: %zu, selection: %zu, creating: %s\n",
-           shapesContainer.size(), selection.size(), isCreatingShape ? "true" : "false");
-
-    // 3. Рисуем фигуры
-    for (int i = 0; i < shapesContainer.size(); i++) {
-        Shape* shape = shapesContainer.at(i);
+    // 2. Рисуем фигуры
+    for (int i = 0; i < shapesContainer.getCount(); i++) {
+        Shape* shape = shapesContainer.getObject(i);
         if (shape) {
-            QRect bounds = shape->getBounds();
-            printf("DEBUG: Drawing shape %d: %s at (%d,%d) size %dx%d\n",
-                   i, shape->name().c_str(), bounds.x(), bounds.y(),
-                   bounds.width(), bounds.height());
             shape->draw(painter);
         }
     }
 
-    // 4. Временная фигура при создании
+    // 3. Временная фигура при создании
     if (isCreatingShape && tempShape) {
-        QRect tempBounds = tempShape->getBounds();
-        printf("DEBUG: Drawing TEMP shape: %s at (%d,%d) size %dx%d\n",
-               tempShape->name().c_str(), tempBounds.x(), tempBounds.y(),
-               tempBounds.width(), tempBounds.height());
         tempShape->draw(painter);
     }
 
-    // 5. Рисуем выделение (рамку и маркеры) ПОСЛЕ фигур
-    if (selection.size() > 0) {
-        printf("DEBUG: Drawing selection with %zu shapes\n", selection.size());
+    // 4. Рисуем выделение (рамку и маркеры) ПОСЛЕ фигур
+    if (selection.getCount() > 0) {
         selection.draw(painter);
     }
-
-    printf("DEBUG: PaintEvent finished\n\n");
 }
 
-void PaintAreaWidget::mousePressEvent(QMouseEvent *event)
-{
+void PaintAreaWidget::mousePressEvent(QMouseEvent *event) {
     if (event->button() == Qt::LeftButton) {
         QPoint mousePos = event->pos();
         printf("Mouse press at (%d, %d), tool: %d\n",
@@ -139,7 +110,7 @@ void PaintAreaWidget::mousePressEvent(QMouseEvent *event)
 
         // Проверяем, не кликнули ли на маркер изменения размера
         Selection::MousePosState resizeState = selection.checkMousePos(mousePos);
-        if (resizeState != Selection::MousePosState::None && selection.size() > 0) {
+        if (resizeState != Selection::MousePosState::None && selection.getCount() > 0) {
             isResizing = true;
             resizeStartPoint = mousePos;
             printf("Resize started at handle: %d\n", static_cast<int>(resizeState));
@@ -155,12 +126,11 @@ void PaintAreaWidget::mousePressEvent(QMouseEvent *event)
                 printf("Clicked on shape: %s (already selected: %s)\n",
                        clickedShape->name().c_str(),
                        clickedShape->isSelected() ? "true" : "false");
-
+                //ctrl не нажат
                 if (!ctrlPressed) {
                     clearSelection();
-                    selection.addElement(clickedShape);
+                    selection.addObject(clickedShape);
                     clickedShape->setSelected(true);
-                    selection.updateRelativeInfo();
                     printf("Shape '%s' selected\n", clickedShape->name().c_str());
                 } else {
                     // Ctrl + клик - переключить выделение
@@ -169,11 +139,10 @@ void PaintAreaWidget::mousePressEvent(QMouseEvent *event)
                         clickedShape->setSelected(false);
                         printf("Shape '%s' deselected\n", clickedShape->name().c_str());
                     } else {
-                        selection.addElement(clickedShape);
+                        selection.addObject(clickedShape);
                         clickedShape->setSelected(true);
                         printf("Shape '%s' selected\n", clickedShape->name().c_str());
                     }
-                    selection.updateRelativeInfo();
                 }
             } else {
                 // Клик по пустой области - снять выделение
@@ -192,7 +161,7 @@ void PaintAreaWidget::mousePressEvent(QMouseEvent *event)
                 tempShape = new Rectangle(mousePos, QSize(1, 1), currentColor);
                 break;
             case Tool::Circle:
-                tempShape = new Circle(mousePos, QSize(1, 1), currentColor);
+                tempShape = new Ellipse(mousePos, QSize(1, 1), currentColor);
                 break;
             case Tool::Triangle:
                 tempShape = new Triangle(mousePos, QSize(1, 1), currentColor);
@@ -211,8 +180,7 @@ void PaintAreaWidget::mousePressEvent(QMouseEvent *event)
     }
 }
 
-void PaintAreaWidget::mouseMoveEvent(QMouseEvent *event)
-{
+void PaintAreaWidget::mouseMoveEvent(QMouseEvent *event) {
     if (isResizing && (event->buttons() & Qt::LeftButton)) {
         // Режим изменения размера
         QPoint delta = event->pos() - resizeStartPoint;
@@ -223,10 +191,36 @@ void PaintAreaWidget::mouseMoveEvent(QMouseEvent *event)
     } else if (isCreatingShape && tempShape && (event->buttons() & Qt::LeftButton)) {
         // Режим создания фигуры
         QPoint currentPos = event->pos();
-        int width = currentPos.x() - creationStartPoint.x();
-        int height = currentPos.y() - creationStartPoint.y();
 
-        tempShape->resize(abs(width), abs(height));
+        // Ограничиваем текущую позицию границами виджета
+        QPoint constrainedCurrentPos = currentPos;
+
+        // Не даем курсору выйти за правую и нижнюю границы
+        if (currentPos.x() > width()) {
+            constrainedCurrentPos.setX(width());
+        }
+        if (currentPos.y() > height()) {
+            constrainedCurrentPos.setY(height());
+        }
+
+        // Не даем курсору выйти за левую и верхнюю границы (при растягивании в обратную сторону)
+        if (currentPos.x() < 0) {
+            constrainedCurrentPos.setX(0);
+        }
+        if (currentPos.y() < 0) {
+            constrainedCurrentPos.setY(0);
+        }
+
+        int width = constrainedCurrentPos.x() - creationStartPoint.x();
+        int height = constrainedCurrentPos.y() - creationStartPoint.y();
+
+        if (currentTool == Tool::Line) {
+            tempShape->resize(width, height);
+        } else {
+            // Для других фигур - только положительные размеры
+            tempShape->resize(abs(width), abs(height));
+        }
+
         update();
     } else if (currentTool == Tool::Select) {
         // Изменение курсора при наведении на маркеры
@@ -259,19 +253,26 @@ void PaintAreaWidget::mouseMoveEvent(QMouseEvent *event)
     }
 }
 
-void PaintAreaWidget::mouseReleaseEvent(QMouseEvent *event)
-{
+void PaintAreaWidget::mouseReleaseEvent(QMouseEvent *event) {
     if (event->button() == Qt::LeftButton) {
         if (isResizing) {
             printf("Resize finished\n");
             isResizing = false;
-            selection.updateRelativeInfo();
         } else if (isCreatingShape && tempShape) {
             QPoint releasePos = event->pos();
-            int finalWidth = releasePos.x() - creationStartPoint.x();
-            int finalHeight = releasePos.y() - creationStartPoint.y();
 
-            bool shouldCreate = (abs(finalWidth) >= 10 && abs(finalHeight) >= 10);
+            // Ограничиваем позицию релиза границами виджета
+            QPoint constrainedReleasePos = releasePos;
+            if (releasePos.x() > width()) constrainedReleasePos.setX(width());
+            if (releasePos.y() > height()) constrainedReleasePos.setY(height());
+            if (releasePos.x() < 0) constrainedReleasePos.setX(0);
+            if (releasePos.y() < 0) constrainedReleasePos.setY(0);
+
+            int finalWidth = constrainedReleasePos.x() - creationStartPoint.x();
+            int finalHeight = constrainedReleasePos.y() - creationStartPoint.y();
+
+
+            bool shouldCreate = (abs(finalWidth) > 0 && abs(finalHeight) > 0);
 
             if (shouldCreate) {
                 Shape* finalShape = nullptr;
@@ -283,9 +284,9 @@ void PaintAreaWidget::mouseReleaseEvent(QMouseEvent *event)
                                                currentColor);
                     break;
                 case Tool::Circle:
-                    finalShape = new Circle(creationStartPoint,
-                                            QSize(abs(finalWidth), abs(finalHeight)),
-                                            currentColor);
+                    finalShape = new Ellipse(creationStartPoint,
+                                             QSize(abs(finalWidth), abs(finalHeight)),
+                                             currentColor);
                     break;
                 case Tool::Triangle:
                     finalShape = new Triangle(creationStartPoint,
@@ -302,13 +303,15 @@ void PaintAreaWidget::mouseReleaseEvent(QMouseEvent *event)
                 }
 
                 if (finalShape) {
-                    shapesContainer.addElement(finalShape);
+                    shapesContainer.addObject(finalShape);
                     // Автоматически выделяем новую фигуру
                     clearSelection();
-                    selection.addElement(finalShape);
+                    selection.addObject(finalShape);
                     finalShape->setSelected(true);
-                    selection.updateRelativeInfo();
-                    printf("Shape '%s' created and selected\n", finalShape->name().c_str());
+                    printf("Shape '%s' created at (%d,%d) size %dx%d\n",
+                           finalShape->name().c_str(),
+                           creationStartPoint.x(), creationStartPoint.y(),
+                           abs(finalWidth), abs(finalHeight));
                 }
             } else {
                 printf("Shape too small - creation cancelled\n");
@@ -322,8 +325,7 @@ void PaintAreaWidget::mouseReleaseEvent(QMouseEvent *event)
     }
 }
 
-void PaintAreaWidget::keyPressEvent(QKeyEvent *event)
-{
+void PaintAreaWidget::keyPressEvent(QKeyEvent *event) {
     switch (event->key()) {
     case Qt::Key_Control:
         ctrlPressed = true;
@@ -338,20 +340,36 @@ void PaintAreaWidget::keyPressEvent(QKeyEvent *event)
         }
         break;
     case Qt::Key_Left:
-        selection.moveSelections(-5, 0);
-        update();
+        selection.moveSelections(-2, 0);
+        if(selection.checkBorder(rect())) {
+            update();
+        } else {
+            selection.moveSelections(2, 0);
+        }
         break;
     case Qt::Key_Right:
-        selection.moveSelections(5, 0);
-        update();
+        selection.moveSelections(2, 0);
+        if(selection.checkBorder(rect())) {
+            update();
+        } else {
+            selection.moveSelections(-2, 0);
+        }
         break;
     case Qt::Key_Up:
-        selection.moveSelections(0, -5);
-        update();
+        selection.moveSelections(0, -2);
+        if(selection.checkBorder(rect())) {
+            update();
+        } else {
+            selection.moveSelections(0, 2);
+        }
         break;
     case Qt::Key_Down:
-        selection.moveSelections(0, 5);
-        update();
+        selection.moveSelections(0, 2);
+        if(selection.checkBorder(rect())) {
+            update();
+        } else {
+            selection.moveSelections(0, -2);
+        }
         break;
     default:
         QWidget::keyPressEvent(event);
@@ -361,8 +379,7 @@ void PaintAreaWidget::keyPressEvent(QKeyEvent *event)
     event->accept();
 }
 
-void PaintAreaWidget::keyReleaseEvent(QKeyEvent *event)
-{
+void PaintAreaWidget::keyReleaseEvent(QKeyEvent *event) {
     if (event->key() == Qt::Key_Control) {
         ctrlPressed = false;
         printf("Ctrl released\n");
@@ -372,20 +389,18 @@ void PaintAreaWidget::keyReleaseEvent(QKeyEvent *event)
     }
 }
 
-void PaintAreaWidget::resizeEvent(QResizeEvent *event)
-{
-    QWidget::resizeEvent(event);
+void PaintAreaWidget::resizeEvent(QResizeEvent *event) {
     printf("Workspace resized: %dx%d\n", width(), height());
+    QWidget::resizeEvent(event);
     update();
 }
 
-std::vector<Shape*> PaintAreaWidget::findShapesAtPoint(const QPoint& point)
-{
+std::vector<Shape*> PaintAreaWidget::findShapesAtPoint(const QPoint& point) {
     std::vector<Shape*> result;
 
     // Ищем фигуры с конца (верхние слои)
-    for (int i = shapesContainer.size() - 1; i >= 0; i--) {
-        Shape* shape = shapesContainer.at(i);
+    for (int i = shapesContainer.getCount() - 1; i >= 0; i--) {
+        Shape* shape = shapesContainer.getObject(i);
         if (shape && shape->hasPointIn(point)) {
             result.push_back(shape);
         }
@@ -395,11 +410,11 @@ std::vector<Shape*> PaintAreaWidget::findShapesAtPoint(const QPoint& point)
     return result;
 }
 
-void PaintAreaWidget::clearSelection()
-{
-    for (int i = 0; i < selection.size(); i++) {
-        selection.at(i)->setSelected(false);
+void PaintAreaWidget::clearSelection() {
+    for (int i = 0; i < selection.getCount(); i++) {
+        selection.getObject(i)->setSelected(false);
     }
     selection.clear();
     printf("Selection cleared\n");
 }
+

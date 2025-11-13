@@ -52,3 +52,8 @@ bool Shape::isSelected() const {
 std::string Shape::name() const {
     return name_;
 }
+
+bool Shape::checkBounds(const QRect& widgetBounds) {
+    QRect shapeBounds = getBounds();
+    return widgetBounds.contains(shapeBounds);
+}

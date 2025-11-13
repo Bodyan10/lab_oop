@@ -40,6 +40,8 @@ public:
     bool isSelected() const;
     std::string name() const;
 
+    bool checkBounds(const QRect& widgetBounds);
+
 protected:
     QPoint pos_;
     QSize size_;

@@ -6,13 +6,8 @@
 #include <QPainter>
 #include <QKeyEvent>
 #include <QResizeEvent>
-#include "container.h"
-#include "shape.h"
-#include "rectangle.h"
-#include "circle.h"
-#include "triangle.h"
-#include "line.h"
 #include "selection.h"
+#include <container.h>
 
 enum class Tool {
     Select,
@@ -48,7 +43,7 @@ protected:
     void resizeEvent(QResizeEvent *event) override;
 
 private:
-    Container<Shape*> shapesContainer;
+    Container<Shape> shapesContainer;
     Selection selection;
     bool ctrlPressed;
     Tool currentTool;
@@ -65,4 +60,4 @@ private:
     void clearSelection();
 };
 
-#endif // PAINTAREAWIDGET_H
+#endif

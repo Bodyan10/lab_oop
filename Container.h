@@ -7,47 +7,58 @@
 template <class T>
 class Container {
 public:
+    // Конструкторы
     Container();
-    Container(const std::vector<T*>& storage);
+    Container(std::vector<T*>& storage);
     Container(const Container& other);
     Container(int size);
     Container& operator=(const Container& other);
 
-    int getCount() const;
+    // Геттеры
+    int getCount();
     T* getObject(int index);
 
+    // Добавление элементов
     void addObject(T* new_object);
     void setObject(int index, T* new_object);
 
+    // Удаление элементов
     void removeAt(int index);
+    void removeElement(T* element);
     void removeSelected();
 
-    std::vector<T*> getAllObjects() const;
-    std::vector<T*> getSelectedObjects() const;
+    // Дополнительные методы для совместимости
+    bool hasElement(const T* el);
     void clear();
+    T& at(size_t index);
+    size_t size();
+    T& operator[](size_t index);
 
+    // Деструктор
     ~Container();
 
 private:
     std::vector<T*> myStorage;
 };
 
+// Реализация шаблонного класса
+
 template<class T>
 Container<T>::Container() {
-    printf("Контейнер создан (пустой)\n");
+    printf("Container()\n");
 }
 
 template<class T>
-Container<T>::Container(const std::vector<T*>& storage) {
-    printf("Контейнер создан из вектора\n");
+Container<T>::Container(std::vector<T*>& storage) {
+    printf("Container(std::vector<T*>&)\n");
     for (T* object : storage) {
-        myStorage.push_back(new T(*object));
+        myStorage.push_back(new T(*(object)));
     }
 }
 
 template<class T>
 Container<T>::Container(int size) {
-    printf("Контейнер создан с размером %d\n", size);
+    printf("Container(int size)\n");
     for (int i = 0; i < size; i++) {
         myStorage.push_back(new T());
     }
@@ -55,25 +66,27 @@ Container<T>::Container(int size) {
 
 template<class T>
 Container<T>::Container(const Container& other) {
-    printf("Контейнер скопирован\n");
+    printf("Container(const Container& other)\n");
     for (T* object : other.myStorage) {
-        myStorage.push_back(new T(*object));
+        myStorage.push_back(new T(*(object)));
     }
 }
 
 template<class T>
 Container<T>& Container<T>::operator=(const Container& other) {
-    printf("Контейнер присвоен\n");
+    printf("operator=(const Container& other)\n");
 
     if (this == &other) {
         return *this;
     }
 
+    // 1. Очищаем старые данные
     for (T* object : myStorage) {
         delete object;
     }
     myStorage.clear();
 
+    // 2. Копируем новые данные
     for (T* object : other.myStorage) {
         myStorage.push_back(new T(*object));
     }
@@ -81,8 +94,9 @@ Container<T>& Container<T>::operator=(const Container& other) {
     return *this;
 }
 
+// Геттеры
 template<class T>
-int Container<T>::getCount() const {
+int Container<T>::getCount() {
     return myStorage.size();
 }
 
@@ -96,6 +110,7 @@ T* Container<T>::getObject(int index) {
     }
 }
 
+// Добавление элементов
 template<class T>
 void Container<T>::addObject(T* new_object) {
     myStorage.push_back(new_object);
@@ -104,10 +119,12 @@ void Container<T>::addObject(T* new_object) {
 
 template<class T>
 void Container<T>::setObject(int index, T* new_object) {
+    // Если индекс равен текущему размеру, добавляем новый элемент
     if (index == getCount()) {
         myStorage.push_back(new_object);
         printf("Объект добавлен в конец контейнера\n");
     }
+    // Если индекс в пределах существующего массива, заменяем элемент
     else if (index >= 0 && index < getCount()) {
         delete myStorage[index];
         myStorage[index] = new_object;
@@ -117,6 +134,7 @@ void Container<T>::setObject(int index, T* new_object) {
     }
 }
 
+// Удаление элементов
 template<class T>
 void Container<T>::removeAt(int index) {
     if (index < 0 || index >= getCount()) {
@@ -124,7 +142,12 @@ void Container<T>::removeAt(int index) {
         return;
     }
 
-    delete myStorage[index];
+    // удаляем объект
+    if (myStorage[index]){
+        delete myStorage[index];
+    }
+
+    // Удаляем указатель из вектора
     myStorage.erase(myStorage.begin() + index);
     printf("Объект удален по индексу: %d. Осталось объектов: %d\n", index, getCount());
 }
@@ -143,36 +166,59 @@ void Container<T>::removeSelected() {
 }
 
 template<class T>
-std::vector<T*> Container<T>::getAllObjects() const {
-    return myStorage;
+void Container<T>::removeElement(T* element) {
+    for (int i = 0; i < getCount(); i++) {
+        if (getObject(i) == element) {
+            removeAt(i);
+            return;
+        }
+    }
+}
+
+// Дополнительные методы для совместимости
+template<class T>
+bool Container<T>::hasElement(const T* el) {
+    for (const T* obj : myStorage) {
+        if (obj == el) return true;
+    }
+    return false;
 }
 
 template<class T>
 void Container<T>::clear() {
     for (T* object : myStorage) {
-        delete object;
+        if (object) {
+            delete object;
+        }
     }
     myStorage.clear();
     printf("Контейнер очищен\n");
 }
 
 template<class T>
-Container<T>::~Container() {
-    for (T* object : myStorage) {
-        delete object;
-    }
-    printf("Контейнер уничтожен\n");
+T& Container<T>::at(size_t index) {
+    return *myStorage[index];
 }
 
 template<class T>
-std::vector<T*> Container<T>::getSelectedObjects() const {
-    std::vector<T*> result;
+size_t Container<T>::size() {
+    return myStorage.size();
+}
+
+template<class T>
+T& Container<T>::operator[](size_t index) {
+    return *myStorage[index];
+}
+
+// Деструктор
+template<class T>
+Container<T>::~Container() {
     for (T* object : myStorage) {
-        if (object->isSelected()) {
-            result.push_back(object);
+        if (object) {
+            delete object;
         }
     }
-    return result;
+    printf("~Container()\n");
 }
 
 #endif // CONTAINER_H

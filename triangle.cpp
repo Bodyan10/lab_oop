@@ -10,6 +10,28 @@ Triangle::Triangle(QPoint coordinates, QSize size, QColor color)
            coordinates.x(), coordinates.y(), size.width(), size.height());
 }
 
+Triangle::Triangle(const Triangle& other)
+    : Shape(other.pos_, other.size_, other.color_) {
+    name_ = "Triangle";
+    isSelected_ = other.isSelected_;
+    printf("Triangle copied\n");
+}
+
+Triangle& Triangle::operator=(const Triangle& other) {
+    if (this != &other) {
+        pos_ = other.pos_;
+        size_ = other.size_;
+        color_ = other.color_;
+        isSelected_ = other.isSelected_;
+    }
+    printf("Triangle assigned\n");
+    return *this;
+}
+
+Triangle::~Triangle() {
+    printf("Triangle destroyed\n");
+}
+
 bool Triangle::hasPointIn(QPoint point) const {
     QPolygon poly;
     poly << QPoint(pos_.x() + size_.width() / 2, pos_.y())
