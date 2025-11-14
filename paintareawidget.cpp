@@ -184,7 +184,7 @@ void PaintAreaWidget::mouseMoveEvent(QMouseEvent *event) {
     if (isResizing && (event->buttons() & Qt::LeftButton)) {
         // Режим изменения размера
         QPoint delta = event->pos() - resizeStartPoint;
-        if (selection.resizeSelections(delta.x(), delta.y())) {
+        if (selection.resizeSelections(delta.x(), delta.y(), rect())) {
             resizeStartPoint = event->pos();
             update();
         }
@@ -192,33 +192,16 @@ void PaintAreaWidget::mouseMoveEvent(QMouseEvent *event) {
         // Режим создания фигуры
         QPoint currentPos = event->pos();
 
-        // Ограничиваем текущую позицию границами виджета
-        QPoint constrainedCurrentPos = currentPos;
-
-        // Не даем курсору выйти за правую и нижнюю границы
-        if (currentPos.x() > width()) {
-            constrainedCurrentPos.setX(width());
-        }
-        if (currentPos.y() > height()) {
-            constrainedCurrentPos.setY(height());
-        }
-
-        // Не даем курсору выйти за левую и верхнюю границы (при растягивании в обратную сторону)
-        if (currentPos.x() < 0) {
-            constrainedCurrentPos.setX(0);
-        }
-        if (currentPos.y() < 0) {
-            constrainedCurrentPos.setY(0);
-        }
-
-        int width = constrainedCurrentPos.x() - creationStartPoint.x();
-        int height = constrainedCurrentPos.y() - creationStartPoint.y();
+        int width = currentPos.x() - creationStartPoint.x();
+        int height = currentPos.y() - creationStartPoint.y();
 
         if (currentTool == Tool::Line) {
             tempShape->resize(width, height);
+            tempShape->adjustToFitBounds(rect());
         } else {
             // Для других фигур - только положительные размеры
             tempShape->resize(abs(width), abs(height));
+            tempShape->adjustToFitBounds(rect());
         }
 
         update();
@@ -254,74 +237,55 @@ void PaintAreaWidget::mouseMoveEvent(QMouseEvent *event) {
 }
 
 void PaintAreaWidget::mouseReleaseEvent(QMouseEvent *event) {
-    if (event->button() == Qt::LeftButton) {
-        if (isResizing) {
-            printf("Resize finished\n");
-            isResizing = false;
-        } else if (isCreatingShape && tempShape) {
-            QPoint releasePos = event->pos();
+    if (event->button() == Qt::LeftButton && isCreatingShape && tempShape) {
+        QPoint releasePos = event->pos();
 
-            // Ограничиваем позицию релиза границами виджета
-            QPoint constrainedReleasePos = releasePos;
-            if (releasePos.x() > width()) constrainedReleasePos.setX(width());
-            if (releasePos.y() > height()) constrainedReleasePos.setY(height());
-            if (releasePos.x() < 0) constrainedReleasePos.setX(0);
-            if (releasePos.y() < 0) constrainedReleasePos.setY(0);
+        int finalWidth = releasePos.x() - creationStartPoint.x();
+        int finalHeight = releasePos.y() - creationStartPoint.y();
 
-            int finalWidth = constrainedReleasePos.x() - creationStartPoint.x();
-            int finalHeight = constrainedReleasePos.y() - creationStartPoint.y();
+        // Минимальный размер
+        if (abs(finalWidth) > 2 && abs(finalHeight) > 2) {
+            Shape* finalShape = nullptr;
 
-
-            bool shouldCreate = (abs(finalWidth) > 0 && abs(finalHeight) > 0);
-
-            if (shouldCreate) {
-                Shape* finalShape = nullptr;
-
-                switch (currentTool) {
-                case Tool::Rectangle:
-                    finalShape = new Rectangle(creationStartPoint,
-                                               QSize(abs(finalWidth), abs(finalHeight)),
-                                               currentColor);
-                    break;
-                case Tool::Circle:
-                    finalShape = new Ellipse(creationStartPoint,
-                                             QSize(abs(finalWidth), abs(finalHeight)),
-                                             currentColor);
-                    break;
-                case Tool::Triangle:
-                    finalShape = new Triangle(creationStartPoint,
-                                              QSize(abs(finalWidth), abs(finalHeight)),
-                                              currentColor);
-                    break;
-                case Tool::Line:
-                    finalShape = new Line(creationStartPoint,
-                                          QSize(finalWidth, finalHeight),
-                                          currentColor);
-                    break;
-                default:
-                    break;
-                }
-
-                if (finalShape) {
-                    shapesContainer.addObject(finalShape);
-                    // Автоматически выделяем новую фигуру
-                    clearSelection();
-                    selection.addObject(finalShape);
-                    finalShape->setSelected(true);
-                    printf("Shape '%s' created at (%d,%d) size %dx%d\n",
-                           finalShape->name().c_str(),
-                           creationStartPoint.x(), creationStartPoint.y(),
-                           abs(finalWidth), abs(finalHeight));
-                }
-            } else {
-                printf("Shape too small - creation cancelled\n");
+            switch (currentTool) {
+            case Tool::Rectangle:
+                finalShape = new Rectangle(creationStartPoint,
+                                           QSize(abs(finalWidth), abs(finalHeight)), currentColor);
+                break;
+            case Tool::Circle:
+                finalShape = new Ellipse(creationStartPoint,
+                                         QSize(abs(finalWidth), abs(finalHeight)), currentColor);
+                break;
+            case Tool::Triangle:
+                finalShape = new Triangle(creationStartPoint,
+                                          QSize(abs(finalWidth), abs(finalHeight)), currentColor);
+                break;
+            case Tool::Line:
+                finalShape = new Line(creationStartPoint,
+                                      QSize(finalWidth, finalHeight), currentColor);
+                break;
+            default:
+                break;
             }
 
-            delete tempShape;
-            tempShape = nullptr;
-            isCreatingShape = false;
-            update();
+            if (finalShape) {
+                // ПРОСТО ВЫЗЫВАЕМ ПОДГОНКУ ПЕРЕД ДОБАВЛЕНИЕМ
+                finalShape->adjustToFitBounds(rect());
+
+                shapesContainer.addObject(finalShape);
+                clearSelection();
+                selection.addObject(finalShape);
+                finalShape->setSelected(true);
+                printf("Shape created and adjusted to fit\n");
+            }
         }
+
+        delete tempShape;
+        tempShape = nullptr;
+        isCreatingShape = false;
+        update();
+    } else if (event->button() == Qt::LeftButton && isResizing) {
+        isResizing = false;
     }
 }
 
@@ -341,35 +305,35 @@ void PaintAreaWidget::keyPressEvent(QKeyEvent *event) {
         break;
     case Qt::Key_Left:
         selection.moveSelections(-2, 0);
-        if(selection.checkBorder(rect())) {
-            update();
-        } else {
-            selection.moveSelections(2, 0);
+        for(int i = 0; i < selection.getCount(); i++) {
+            Shape* shape = selection.getObject(i);
+            shape->adjustToFitBounds(rect());
         }
+        update();
         break;
     case Qt::Key_Right:
         selection.moveSelections(2, 0);
-        if(selection.checkBorder(rect())) {
-            update();
-        } else {
-            selection.moveSelections(-2, 0);
+        for(int i = 0; i < selection.getCount(); i++) {
+            Shape* shape = selection.getObject(i);
+            shape->adjustToFitBounds(rect());
         }
+        update();
         break;
     case Qt::Key_Up:
         selection.moveSelections(0, -2);
-        if(selection.checkBorder(rect())) {
-            update();
-        } else {
-            selection.moveSelections(0, 2);
+        for(int i = 0; i < selection.getCount(); i++) {
+            Shape* shape = selection.getObject(i);
+            shape->adjustToFitBounds(rect());
         }
+        update();
         break;
     case Qt::Key_Down:
         selection.moveSelections(0, 2);
-        if(selection.checkBorder(rect())) {
-            update();
-        } else {
-            selection.moveSelections(0, -2);
+        for(int i = 0; i < selection.getCount(); i++) {
+            Shape* shape = selection.getObject(i);
+            shape->adjustToFitBounds(rect());
         }
+        update();
         break;
     default:
         QWidget::keyPressEvent(event);

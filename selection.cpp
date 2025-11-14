@@ -7,7 +7,7 @@ Selection::Selection() {
 }
 
 Selection::~Selection() {
-    // НЕ удаляем объекты, так как они принадлежат основному контейнеру
+    // Не удаляем объекты, так как они принадлежат основному контейнеру
     selectedShapes.clear();
     printf("Selection destroyed\n");
 }
@@ -30,7 +30,6 @@ void Selection::removeElement(Shape* element) {
         }
     }
 }
-
 
 void Selection::clear() {
     selectedShapes.clear();
@@ -179,7 +178,7 @@ void Selection::moveSelections(int diffX, int diffY) {
     printf("Selection moved by (%d, %d)\n", diffX, diffY);
 }
 
-bool Selection::resizeSelections(int diffX, int diffY) {
+bool Selection::resizeSelections(int diffX, int diffY, const QRect& rect_border) {
     QRect bounds = getArea();
     if (bounds.isNull()) return false;
 
@@ -227,6 +226,9 @@ bool Selection::resizeSelections(int diffX, int diffY) {
 
     // ЕДИНЫЙ АЛГОРИТМ МАСШТАБИРОВАНИЯ
     scaleToNewBounds(QRect(newPos, newSize));
+    for (Shape* obj : selectedShapes) {
+        obj->adjustToFitBounds(rect_border);
+    }
 
     printf("Selection resized from %dx%d to %dx%d\n",
            bounds.width(), bounds.height(), newSize.width(), newSize.height());
@@ -284,3 +286,5 @@ bool Selection::checkBorder(const QRect& widgetBounds) {
     QRect shapeBounds = getArea();
     return widgetBounds.contains(shapeBounds);
 }
+
+

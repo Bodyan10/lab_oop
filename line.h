@@ -13,6 +13,7 @@ public:
     ShapeType type() const override { return ShapeType::Line; }
     bool hasPointIn(QPoint point) const override;
     void draw(QPainter &painter) const override;
+    void adjustToFitBounds(const QRect& widgetBounds) override;
 
 private:
     int lineWidth_ = 2;

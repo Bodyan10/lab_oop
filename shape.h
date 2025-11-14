@@ -41,6 +41,7 @@ public:
     std::string name() const;
 
     bool checkBounds(const QRect& widgetBounds);
+    virtual void adjustToFitBounds(const QRect& widgetBounds);
 
 protected:
     QPoint pos_;

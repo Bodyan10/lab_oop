@@ -20,7 +20,7 @@ public:
     bool hasObjectInPoint(QPoint point) const;
     MousePosState checkMousePos(QPoint pos);
     void moveSelections(int diffX, int diffY);
-    bool resizeSelections(int diffX, int diffY);
+    bool resizeSelections(int diffX, int diffY, const QRect&);
     bool checkBorder(const QRect& widget_border);
 
     // Методы для работы с контейнером

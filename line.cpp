@@ -85,3 +85,17 @@ void Line::draw(QPainter& painter) const {
            p1.x(), p1.y(), p2.x(), p2.y(),
            color_.red(), color_.green(), color_.blue());
 }
+
+void Line::adjustToFitBounds(const QRect& widgetBounds) {
+    QPoint p1 = pos_;
+    QPoint p2 = pos_ + QPoint(size_.width(), size_.height());
+
+    // Подгоняем обе точки линии
+    p1.setX(std::clamp(p1.x(), 0, widgetBounds.width()));
+    p1.setY(std::clamp(p1.y(), 0, widgetBounds.height()));
+    p2.setX(std::clamp(p2.x(), 0, widgetBounds.width()));
+    p2.setY(std::clamp(p2.y(), 0, widgetBounds.height()));
+
+    pos_ = p1;
+    size_ = QSize(p2.x() - p1.x(), p2.y() - p1.y());
+}
