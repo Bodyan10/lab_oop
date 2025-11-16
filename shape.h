@@ -8,24 +8,14 @@
 #include <QPainter>
 #include <string>
 
-enum class ShapeType {
-    Rectangle = 0,
-    Circle = 1,
-    Triangle = 2,
-    Line = 3,
-    None = 100
-};
-
 class Shape {
 public:
-    Shape(QPoint coordinates = QPoint(), QSize size = QSize(), QColor color = Qt::blue);
+    Shape(QPoint coordinates, QSize size, QColor color, bool selected);
     virtual ~Shape();
 
     virtual void move(int x, int y);
     virtual void resize(int x, int y);
     virtual void changeColor(QColor color);
-
-    virtual ShapeType type() const { return ShapeType::None; }
 
     QSize getSize() const;
     QPoint getPos() const;
@@ -33,15 +23,16 @@ public:
     QColor getColor() const;
     virtual QRect getBounds() const;
 
-    virtual bool hasPointIn(QPoint point) const = 0;
+    bool hasPointIn(QPoint point) const;
     virtual void draw(QPainter &painter) const = 0;
 
     void setSelected(bool selected);
     bool isSelected() const;
     std::string name() const;
 
-    bool checkBounds(const QRect& widgetBounds);
-    virtual void adjustToFitBounds(const QRect& widgetBounds);
+    virtual bool adjustToFitBounds(const QRect& widgetBounds);
+    bool canMove(const QRect& widgetBounds, int diffx, int diffy);
+    bool canMoveAndResize(const QRect& widgetBounds, const QPoint& new_pos, const QSize& new_size);
 
 protected:
     QPoint pos_;

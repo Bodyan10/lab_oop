@@ -5,13 +5,11 @@
 
 class Triangle : public Shape {
 public:
-    Triangle(QPoint coordinates = QPoint(), QSize size = QSize(), QColor color = Qt::blue);
+    Triangle(QPoint coordinates, QSize size, QColor color, bool selected, std::string name);
     Triangle(const Triangle& other);
     Triangle& operator=(const Triangle& other);
     ~Triangle();
 
-    ShapeType type() const override { return ShapeType::Triangle; }
-    bool hasPointIn(QPoint point) const override;
     void draw(QPainter &painter) const override;
 };
 

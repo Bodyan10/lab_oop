@@ -5,13 +5,11 @@
 
 class Ellipse : public Shape {
 public:
-    Ellipse(QPoint coordinates = QPoint(), QSize size = QSize(), QColor color = Qt::red);
+    Ellipse(QPoint coordinates, QSize size, QColor color, bool selected, std::string name);
     Ellipse(const Ellipse& other); // Конструктор копирования
     Ellipse& operator=(const Ellipse& other); // Оператор присваивания
     ~Ellipse(); // Деструктор
 
-    ShapeType type() const override { return ShapeType::Circle; }
-    bool hasPointIn(QPoint point) const override;
     void draw(QPainter &painter) const override;
 };
 

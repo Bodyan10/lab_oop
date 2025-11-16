@@ -158,16 +158,16 @@ void PaintAreaWidget::mousePressEvent(QMouseEvent *event) {
 
             switch (currentTool) {
             case Tool::Rectangle:
-                tempShape = new Rectangle(mousePos, QSize(1, 1), currentColor);
+                tempShape = new Rectangle(mousePos, QSize(1, 1), currentColor, false, "Rectangle");
                 break;
             case Tool::Circle:
-                tempShape = new Ellipse(mousePos, QSize(1, 1), currentColor);
+                tempShape = new Ellipse(mousePos, QSize(1, 1), currentColor, false, "Ellipse");
                 break;
             case Tool::Triangle:
-                tempShape = new Triangle(mousePos, QSize(1, 1), currentColor);
+                tempShape = new Triangle(mousePos, QSize(1, 1), currentColor, false, "Traingle");
                 break;
             case Tool::Line:
-                tempShape = new Line(mousePos, QSize(1, 1), currentColor);
+                tempShape = new Line(mousePos, QSize(1, 1), currentColor, false, "Line", 2);
                 break;
             default:
                 break;
@@ -205,34 +205,6 @@ void PaintAreaWidget::mouseMoveEvent(QMouseEvent *event) {
         }
 
         update();
-    } else if (currentTool == Tool::Select) {
-        // Изменение курсора при наведении на маркеры
-        Selection::MousePosState state = selection.checkMousePos(event->pos());
-        Qt::CursorShape cursor = Qt::ArrowCursor;
-
-        switch (state) {
-        case Selection::MousePosState::TopLeft:
-        case Selection::MousePosState::BottomRight:
-            cursor = Qt::SizeFDiagCursor;
-            break;
-        case Selection::MousePosState::TopRight:
-        case Selection::MousePosState::BottomLeft:
-            cursor = Qt::SizeBDiagCursor;
-            break;
-        case Selection::MousePosState::Top:
-        case Selection::MousePosState::Bottom:
-            cursor = Qt::SizeVerCursor;
-            break;
-        case Selection::MousePosState::Left:
-        case Selection::MousePosState::Right:
-            cursor = Qt::SizeHorCursor;
-            break;
-        case Selection::MousePosState::None:
-            cursor = Qt::ArrowCursor;
-            break;
-        }
-
-        setCursor(cursor);
     }
 }
 
@@ -244,32 +216,28 @@ void PaintAreaWidget::mouseReleaseEvent(QMouseEvent *event) {
         int finalHeight = releasePos.y() - creationStartPoint.y();
 
         // Минимальный размер
-        if (abs(finalWidth) > 2 && abs(finalHeight) > 2) {
+        if (abs(finalWidth) > 0 && abs(finalHeight) > 0) {
             Shape* finalShape = nullptr;
 
             switch (currentTool) {
             case Tool::Rectangle:
-                finalShape = new Rectangle(creationStartPoint,
-                                           QSize(abs(finalWidth), abs(finalHeight)), currentColor);
+                finalShape = new Rectangle(creationStartPoint, QSize(abs(finalWidth), abs(finalHeight)), currentColor, false, "Rectangle");
                 break;
             case Tool::Circle:
-                finalShape = new Ellipse(creationStartPoint,
-                                         QSize(abs(finalWidth), abs(finalHeight)), currentColor);
+                finalShape = new Ellipse(creationStartPoint, QSize(abs(finalWidth), abs(finalHeight)), currentColor, false, "Ellipse");
                 break;
             case Tool::Triangle:
-                finalShape = new Triangle(creationStartPoint,
-                                          QSize(abs(finalWidth), abs(finalHeight)), currentColor);
+                finalShape = new Triangle(creationStartPoint, QSize(abs(finalWidth), abs(finalHeight)), currentColor, false, "Traingle");
                 break;
             case Tool::Line:
-                finalShape = new Line(creationStartPoint,
-                                      QSize(finalWidth, finalHeight), currentColor);
+                finalShape = new Line(creationStartPoint, QSize(finalWidth, finalHeight), currentColor, false, "Line", 2);
                 break;
             default:
                 break;
             }
 
             if (finalShape) {
-                // ПРОСТО ВЫЗЫВАЕМ ПОДГОНКУ ПЕРЕД ДОБАВЛЕНИЕМ
+                // Проверяем границы
                 finalShape->adjustToFitBounds(rect());
 
                 shapesContainer.addObject(finalShape);
@@ -304,35 +272,19 @@ void PaintAreaWidget::keyPressEvent(QKeyEvent *event) {
         }
         break;
     case Qt::Key_Left:
-        selection.moveSelections(-2, 0);
-        for(int i = 0; i < selection.getCount(); i++) {
-            Shape* shape = selection.getObject(i);
-            shape->adjustToFitBounds(rect());
-        }
+        selection.moveSelections(-2, 0, rect());
         update();
         break;
     case Qt::Key_Right:
-        selection.moveSelections(2, 0);
-        for(int i = 0; i < selection.getCount(); i++) {
-            Shape* shape = selection.getObject(i);
-            shape->adjustToFitBounds(rect());
-        }
+        selection.moveSelections(2, 0, rect());
         update();
         break;
     case Qt::Key_Up:
-        selection.moveSelections(0, -2);
-        for(int i = 0; i < selection.getCount(); i++) {
-            Shape* shape = selection.getObject(i);
-            shape->adjustToFitBounds(rect());
-        }
+        selection.moveSelections(0, -2, rect());
         update();
         break;
     case Qt::Key_Down:
-        selection.moveSelections(0, 2);
-        for(int i = 0; i < selection.getCount(); i++) {
-            Shape* shape = selection.getObject(i);
-            shape->adjustToFitBounds(rect());
-        }
+        selection.moveSelections(0, 2, rect());
         update();
         break;
     default:

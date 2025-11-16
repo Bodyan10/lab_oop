@@ -1,9 +1,12 @@
 #include "shape.h"
 #include <cstdio>
 
-Shape::Shape(QPoint coordinates, QSize size, QColor color)
-    : pos_(coordinates), size_(size), color_(color) {
-    printf("Shape created\n");
+Shape::Shape(QPoint coordinates, QSize size, QColor color, bool selected) {
+    pos_ = coordinates;
+    size_ = size;
+    color_ = color;
+    isSelected_ = selected;
+    printf("Shape(QPoint coordinates, QSize size, QColor color, bool selected)");
 }
 
 Shape::~Shape() {
@@ -19,12 +22,10 @@ void Shape::move(int x, int y) {
 void Shape::resize(int x, int y) {
     size_.setWidth(x);
     size_.setHeight(y);
-    printf("Shape '%s' resized to %dx%d\n", name_.c_str(), x, y);
 }
 
 void Shape::changeColor(QColor color) {
     color_ = color;
-    printf("Shape '%s' color changed to (%d, %d, %d)\n", name_.c_str(), color.red(), color.green(), color.blue());
 }
 
 QSize Shape::getSize() const { return size_; }
@@ -41,7 +42,6 @@ QRect Shape::getBounds() const {
 
 void Shape::setSelected(bool selected) {
     isSelected_ = selected;
-    printf("Shape '%s' selection: %s\n", name_.c_str(), selected ? "selected" : "deselected");
 }
 
 bool Shape::isSelected() const {
@@ -52,20 +52,15 @@ std::string Shape::name() const {
     return name_;
 }
 
-bool Shape::checkBounds(const QRect& widgetBounds) {
-    QRect shapeBounds = getBounds();
-    return widgetBounds.contains(shapeBounds);
-}
-
-void Shape::adjustToFitBounds(const QRect& widgetBounds) {
+bool Shape::adjustToFitBounds(const QRect& widgetBounds) {
     QRect currentBounds = getBounds();
 
     // Если уже в границах - ничего не делаем
     if (widgetBounds.contains(currentBounds)) {
-        return;
+        return true;
     }
 
-    // Подгоняем позицию (левая и верхняя границы)
+    // Подгоняем позицию левой и верхней точки
     int newX = std::clamp(pos_.x(), 0, widgetBounds.width() - 1);
     int newY = std::clamp(pos_.y(), 0, widgetBounds.height() - 1);
 
@@ -83,4 +78,25 @@ void Shape::adjustToFitBounds(const QRect& widgetBounds) {
     pos_ = QPoint(newX, newY);
 
     printf("Shape adjusted: pos(%d,%d) size(%dx%d)\n", newX, newY, size_.width(), size_.height());
+    return false;
+}
+
+bool Shape::hasPointIn(QPoint point) const {
+    QRect rect = getBounds();
+    if (rect.contains(point)) {
+        return true;
+    }
+    return false;
+}
+
+bool Shape::canMove(const QRect& widgetBounds, int diffx, int diffy){
+    QPoint newPos = getPos() + QPoint(diffx, diffy);
+    QSize currentSize = getSize();
+    QRect newBounds(newPos, currentSize);
+
+    return widgetBounds.contains(newBounds);
+}
+
+bool Shape::canMoveAndResize(const QRect& widgetBound, const QPoint& new_pos, const QSize& new_size) {
+    return widgetBound.contains(QRect(new_pos, new_size));
 }

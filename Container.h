@@ -19,25 +19,24 @@ public:
     T* getObject(int index);
 
     // Добавление элементов
-    void addObject(T* new_object);
+    virtual void addObject(T* new_object);
     void setObject(int index, T* new_object);
 
     // Удаление элементов
-    void removeAt(int index);
-    void removeElement(T* element);
-    void removeSelected();
+    virtual void removeAt(int index);
+    virtual void removeElement(T* element);
+    virtual void removeSelected();
 
-    // Дополнительные методы для совместимости
     bool hasElement(const T* el);
-    void clear();
+    virtual void clear();
     T& at(size_t index);
     size_t size();
     T& operator[](size_t index);
 
     // Деструктор
-    ~Container();
+    virtual ~Container();
 
-private:
+protected:
     std::vector<T*> myStorage;
 };
 
@@ -114,7 +113,6 @@ T* Container<T>::getObject(int index) {
 template<class T>
 void Container<T>::addObject(T* new_object) {
     myStorage.push_back(new_object);
-    printf("Объект добавлен в контейнер. Всего объектов: %d\n", getCount());
 }
 
 template<class T>
@@ -122,15 +120,11 @@ void Container<T>::setObject(int index, T* new_object) {
     // Если индекс равен текущему размеру, добавляем новый элемент
     if (index == getCount()) {
         myStorage.push_back(new_object);
-        printf("Объект добавлен в конец контейнера\n");
     }
     // Если индекс в пределах существующего массива, заменяем элемент
     else if (index >= 0 && index < getCount()) {
         delete myStorage[index];
         myStorage[index] = new_object;
-        printf("Объект заменен по индексу: %d\n", index);
-    } else {
-        printf("Попытка установить объект по несуществующему индексу: %d\n", index);
     }
 }
 
@@ -149,20 +143,16 @@ void Container<T>::removeAt(int index) {
 
     // Удаляем указатель из вектора
     myStorage.erase(myStorage.begin() + index);
-    printf("Объект удален по индексу: %d. Осталось объектов: %d\n", index, getCount());
 }
 
 template<class T>
 void Container<T>::removeSelected() {
-    int removedCount = 0;
     for (int i = getCount() - 1; i >= 0; i--) {
         if (myStorage[i]->isSelected()) {
             delete myStorage[i];
             myStorage.erase(myStorage.begin() + i);
-            removedCount++;
         }
     }
-    printf("Удалено выделенных объектов: %d. Осталось объектов: %d\n", removedCount, getCount());
 }
 
 template<class T>
@@ -192,7 +182,6 @@ void Container<T>::clear() {
         }
     }
     myStorage.clear();
-    printf("Контейнер очищен\n");
 }
 
 template<class T>

@@ -1,21 +1,17 @@
 #include "line.h"
 #include <QPainter>
-#include <cmath>
 #include <cstdio>
 
-Line::Line(QPoint coordinates, QSize size, QColor color)
-    : Shape(coordinates, size, color) {
-    name_ = "Line";
-    printf("Line created from (%d, %d) to (%d, %d)\n",
-           coordinates.x(), coordinates.y(),
-           coordinates.x() + size.width(), coordinates.y() + size.height());
+Line::Line(QPoint coordinates, QSize size, QColor color, bool selected, std::string name, int lineWidth) : Shape(coordinates, size, color, selected) {
+    name_ = name;
+    lineWidth_ = lineWidth;
+    printf("Line(QPoint coordinates, QSize size, QColor color, bool selected, std::string name, int lineWidth) : Shape(coordinates, size, color, selected) {");
 }
 
-Line::Line(const Line& other)
-    : Shape(other.pos_, other.size_, other.color_), lineWidth_(other.lineWidth_) {
-    name_ = "Line";
-    isSelected_ = other.isSelected_;
-    printf("Line copied\n");
+Line::Line(const Line& other) : Shape(other.pos_, other.size_, other.color_, other.isSelected_){
+    name_ = other.name_;
+    lineWidth_ = other.lineWidth_;
+    printf("Line(const Line& other) : Shape(other.pos_, other.size_, other.color_, other.isSelected_)");
 }
 
 Line& Line::operator=(const Line& other) {
@@ -34,51 +30,11 @@ Line::~Line() {
     printf("Line destroyed\n");
 }
 
-bool Line::hasPointIn(QPoint point) const {
-    QPoint p1 = pos_;
-    QPoint p2 = pos_ + QPoint(size_.width(), size_.height());
-
-    // Calculate distance from point to line
-    double A = point.x() - p1.x();
-    double B = point.y() - p1.y();
-    double C = p2.x() - p1.x();
-    double D = p2.y() - p1.y();
-
-    double dot = A * C + B * D;
-    double len_sq = C * C + D * D;
-    double param = -1;
-    if (len_sq != 0) param = dot / len_sq;
-
-    double xx, yy;
-    if (param < 0) {
-        xx = p1.x();
-        yy = p1.y();
-    } else if (param > 1) {
-        xx = p2.x();
-        yy = p2.y();
-    } else {
-        xx = p1.x() + param * C;
-        yy = p1.y() + param * D;
-    }
-
-    double dx = point.x() - xx;
-    double dy = point.y() - yy;
-    double distance = sqrt(dx * dx + dy * dy);
-
-    bool contains = distance <= lineWidth_ + 2; // +2 for selection tolerance
-    printf("Line contains point (%d, %d): %s\n", point.x(), point.y(), contains ? "true" : "false");
-    return contains;
-}
-
 void Line::draw(QPainter& painter) const {
     QPoint p1 = pos_;
     QPoint p2 = pos_ + QPoint(size_.width(), size_.height());
 
-    if (isSelected_) {
-        painter.setPen(QPen(Qt::red, lineWidth_ + 2));
-    } else {
-        painter.setPen(QPen(color_, lineWidth_));
-    }
+    painter.setPen(QPen(color_, lineWidth_));
 
     painter.drawLine(p1, p2);
     printf("Line drawn from (%d, %d) to (%d, %d), color (%d,%d,%d)\n",
@@ -86,7 +42,12 @@ void Line::draw(QPainter& painter) const {
            color_.red(), color_.green(), color_.blue());
 }
 
-void Line::adjustToFitBounds(const QRect& widgetBounds) {
+bool Line::adjustToFitBounds(const QRect& widgetBounds) {
+
+    if (widgetBounds.contains(getBounds())) {
+        return true;
+    }
+
     QPoint p1 = pos_;
     QPoint p2 = pos_ + QPoint(size_.width(), size_.height());
 
@@ -98,4 +59,5 @@ void Line::adjustToFitBounds(const QRect& widgetBounds) {
 
     pos_ = p1;
     size_ = QSize(p2.x() - p1.x(), p2.y() - p1.y());
+    return false;
 }
