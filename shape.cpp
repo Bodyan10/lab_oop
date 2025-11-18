@@ -61,8 +61,8 @@ bool Shape::adjustToFitBounds(const QRect& widgetBounds) {
     }
 
     // Подгоняем позицию левой и верхней точки
-    int newX = std::clamp(pos_.x(), 0, widgetBounds.width() - 1);
-    int newY = std::clamp(pos_.y(), 0, widgetBounds.height() - 1);
+    int newX = std::clamp(pos_.x(), 0, widgetBounds.width());
+    int newY = std::clamp(pos_.y(), 0, widgetBounds.height());
 
     // Подгоняем размер (правая и нижняя границы)
     int maxWidth = widgetBounds.width() - newX;
@@ -77,7 +77,6 @@ bool Shape::adjustToFitBounds(const QRect& widgetBounds) {
 
     pos_ = QPoint(newX, newY);
 
-    printf("Shape adjusted: pos(%d,%d) size(%dx%d)\n", newX, newY, size_.width(), size_.height());
     return false;
 }
 

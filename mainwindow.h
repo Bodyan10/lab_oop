@@ -14,13 +14,13 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = nullptr);
+    MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
 private slots:
     void onSelectTool();
     void onRectangleTool();
-    void onCircleTool();
+    void onEllipseTool();
     void onTriangleTool();
     void onLineTool();
     void onChangeColor();

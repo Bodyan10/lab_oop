@@ -7,12 +7,12 @@
 #include <QKeyEvent>
 #include <QResizeEvent>
 #include "selection.h"
-#include <container.h>
+#include <Container.h>
 
 enum class Tool {
     Select,
     Rectangle,
-    Circle,
+    Ellipse,
     Triangle,
     Line
 };
@@ -22,7 +22,7 @@ class PaintAreaWidget : public QWidget
     Q_OBJECT
 
 public:
-    explicit PaintAreaWidget(QWidget *parent = nullptr);
+    PaintAreaWidget(QWidget *parent = nullptr);
     ~PaintAreaWidget();
 
     void setCurrentTool(Tool tool);

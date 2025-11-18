@@ -44,8 +44,6 @@ void Selection::draw(QPainter& painter) const {
     painter.setBrush(Qt::white);
     painter.setPen(QPen(Qt::blue, 2));
     painter.drawRects(handles, 8);
-
-    printf("Selection drawn: area (%d,%d %dx%d) - DASHED BLUE FRAME\n", r.x(), r.y(), r.width(), r.height());
 }
 
 QRect Selection::getArea() const {
@@ -128,20 +126,22 @@ Selection::MousePosState Selection::checkMousePos(QPoint pos) {
 }
 
 void Selection::moveSelections(int diffX, int diffY, const QRect& widgetBounds) {
-    // 1. ПРОВЕРЯЕМ ВСЕ фигуры ПЕРЕД перемещением
+    // 1. проверяем фигуры перед перемещением
     for (Shape* obj : myStorage) {
         if (!obj->canMove(widgetBounds, diffX, diffY)) {
             return;
         }
     }
 
-    // 2. Перемещаем ВСЕ фигуры
+    // 2. Перемещаем все фигуры
     for (Shape* obj : myStorage) {
         if (obj) {
             QPoint newPos = obj->getPos() + QPoint(diffX, diffY);
             obj->move(newPos.x(), newPos.y());
         }
     }
+
+    updateShapesRelativeFrame();
 }
 
 bool Selection::resizeSelections(int diffX, int diffY, const QRect& widget_rect) {
@@ -199,6 +199,7 @@ bool Selection::resizeSelections(int diffX, int diffY, const QRect& widget_rect)
 
     new_bounds = QRect(newPos, newSize);
 
+    //Проверяем можно ли изменить размер выделенных объектов
     for (int i = 0; i < getCount(); i++) {
         Shape* shape = myStorage[i];
         QPoint check_point(new_bounds.topLeft().x() + shapesRelativeFrame[i].first.x() * new_bounds.width(),
@@ -210,6 +211,7 @@ bool Selection::resizeSelections(int diffX, int diffY, const QRect& widget_rect)
         }
     }
 
+    //Изменяем размер выделенных объектов
     for (int i = 0; i < getCount(); i++) {
         if (myStorage[i]) {
             Shape* shape = myStorage[i];
@@ -250,7 +252,6 @@ void Selection::clear() {
 
 void Selection::removeAt(int index) {
     if (index < 0 || index >= getCount()) {
-        printf("Попытка удаления по несуществующему индексу: %d\n", index);
         return;
     }
 
