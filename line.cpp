@@ -2,6 +2,9 @@
 #include <QPainter>
 #include <cstdio>
 
+Line::Line() : Shape() {
+}
+
 Line::Line(QPoint coordinates, QSize size, QColor color, bool selected, std::string name, int lineWidth) : Shape(coordinates, size, color, selected) {
     name_ = name;
     lineWidth_ = lineWidth;

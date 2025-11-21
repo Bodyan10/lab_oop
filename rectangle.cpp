@@ -2,6 +2,9 @@
 #include <QPainter>
 #include <cstdio>
 
+Rectangle::Rectangle() : Shape() {
+}
+
 Rectangle::Rectangle(QPoint coordinates, QSize size, QColor color, bool selected, std::string name) : Shape(coordinates, size, color, selected) {
     name_ = name;
     printf("Rectangle(QPoint coordinates, QSize size, QColor color, bool selected, std::string name)");

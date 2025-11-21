@@ -5,6 +5,7 @@
 
 class Rectangle : public Shape {
 public:
+    Rectangle();
     Rectangle(QPoint coordinates, QSize size, QColor color, bool selected, std::string name);
     Rectangle(const Rectangle& other);
     Rectangle& operator=(const Rectangle& other);

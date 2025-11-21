@@ -5,6 +5,7 @@
 
 class Line : public Shape {
 public:
+    Line();
     Line(QPoint coordinates, QSize size, QColor color, bool selected, std::string name, int lineWidth);
     Line(const Line& other);
     Line& operator=(const Line& other);

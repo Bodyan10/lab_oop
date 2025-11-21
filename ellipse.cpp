@@ -2,6 +2,9 @@
 #include <QPainter>
 #include <cstdio>
 
+Ellipse::Ellipse() : Shape() {
+}
+
 Ellipse::Ellipse(QPoint coordinates, QSize size, QColor color, bool selected, std::string name) : Shape(coordinates, size, color, selected) {
     name_ = name;
     printf("Ellipse(QPoint coordinates, QSize size, QColor color, bool selected, std::string name)");

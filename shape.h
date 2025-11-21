@@ -10,6 +10,7 @@
 
 class Shape {
 public:
+    Shape();
     Shape(QPoint coordinates, QSize size, QColor color, bool selected);
     virtual ~Shape();
 
@@ -33,6 +34,9 @@ public:
     virtual bool adjustToFitBounds(const QRect& widgetBounds);
     bool canMove(const QRect& widgetBounds, int diffx, int diffy);
     bool canMoveAndResize(const QRect& widgetBounds, const QPoint& new_pos, const QSize& new_size);
+
+    void load(std::string filename); //Надо написать эти два метода
+    void save(std::string filename);
 
 protected:
     QPoint pos_;

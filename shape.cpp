@@ -1,6 +1,9 @@
 #include "shape.h"
 #include <cstdio>
 
+Shape::Shape() {
+}
+
 Shape::Shape(QPoint coordinates, QSize size, QColor color, bool selected) {
     pos_ = coordinates;
     size_ = size;

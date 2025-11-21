@@ -5,6 +5,7 @@
 
 class Ellipse : public Shape {
 public:
+    Ellipse();
     Ellipse(QPoint coordinates, QSize size, QColor color, bool selected, std::string name);
     Ellipse(const Ellipse& other); // Конструктор копирования
     Ellipse& operator=(const Ellipse& other); // Оператор присваивания

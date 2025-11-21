@@ -3,6 +3,9 @@
 
 #include <vector>
 #include <cstdio>
+#include <stdio.h>
+#include <myshapefactory.h>
+#include <string>
 
 template <class T>
 class Container {
@@ -32,6 +35,8 @@ public:
     T& at(size_t index);
     size_t size();
     T& operator[](size_t index);
+
+    void loadShapes(std::string filename, ShapeFactory& factory);
 
     // Деструктор
     virtual ~Container();
@@ -197,6 +202,26 @@ size_t Container<T>::size() {
 template<class T>
 T& Container<T>::operator[](size_t index) {
     return *myStorage[index];
+}
+
+template<class T>
+void Container<T>::loadShapes(std::string filename, ShapeFactory& factory) {
+    FILE* stream;
+    int count;
+    char code;
+    T* shape;
+    if ((stream = std::fopen(filename.c_str(), "r")) != nullptr) {
+        std::fscanf(stream, "%d\n", &count);
+        for (int i = 0; i < count; i++) {
+            fscanf(stream, "%c\n", &code);
+            shape  = factory.createShape(code);
+            if (shape != nullptr) {
+                shape->load(stream);
+                myStorage.push_back(shape);
+            }
+        }
+        std::fclose(stream);
+    }
 }
 
 // Деструктор
