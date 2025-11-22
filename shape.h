@@ -24,19 +24,19 @@ public:
     QColor getColor() const;
     virtual QRect getBounds() const;
 
-    bool hasPointIn(QPoint point) const;
+    virtual bool hasPointIn(QPoint point) const;
     virtual void draw(QPainter &painter) const = 0;
 
-    void setSelected(bool selected);
-    bool isSelected() const;
+    virtual void setSelected(bool selected);
+    virtual bool isSelected() const;
     std::string name() const;
 
     virtual bool adjustToFitBounds(const QRect& widgetBounds);
     bool canMove(const QRect& widgetBounds, int diffx, int diffy);
     bool canMoveAndResize(const QRect& widgetBounds, const QPoint& new_pos, const QSize& new_size);
 
-    void load(std::string filename); //Надо написать эти два метода
-    void save(std::string filename);
+    virtual void load(std::string filename); //Надо написать эти два метода
+    virtual void save(std::string filename);
 
 protected:
     QPoint pos_;
