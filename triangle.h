@@ -6,12 +6,13 @@
 class Triangle : public Shape {
 public:
     Triangle();
-    Triangle(QPoint coordinates, QSize size, QColor color, bool selected, std::string name);
+    Triangle(QPoint coordinates, QSize size, QColor color, bool selected);
     Triangle(const Triangle& other);
     Triangle& operator=(const Triangle& other);
     ~Triangle();
 
     void draw(QPainter &painter) const override;
+    char getTypeCode() const override;
 };
 
 #endif // TRIANGLE_H

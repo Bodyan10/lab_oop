@@ -5,13 +5,11 @@
 Rectangle::Rectangle() : Shape() {
 }
 
-Rectangle::Rectangle(QPoint coordinates, QSize size, QColor color, bool selected, std::string name) : Shape(coordinates, size, color, selected) {
-    name_ = name;
+Rectangle::Rectangle(QPoint coordinates, QSize size, QColor color, bool selected) : Shape(coordinates, size, color, selected) {
     printf("Rectangle(QPoint coordinates, QSize size, QColor color, bool selected, std::string name)");
 }
 
 Rectangle::Rectangle(const Rectangle& other) : Shape(other.pos_, other.size_, other.color_, other.isSelected_){
-    name_ = other.name_;
     printf("Rectangle copied\n");
 }
 
@@ -21,7 +19,6 @@ Rectangle& Rectangle::operator=(const Rectangle& other) {
         size_ = other.size_;
         color_ = other.color_;
         isSelected_ = other.isSelected_;
-        name_ = other.name_;
     }
     printf("Rectangle assigned\n");
     return *this;
@@ -37,4 +34,8 @@ void Rectangle::draw(QPainter& painter) const {
     painter.setPen(QPen(Qt::black, 1));
     painter.setBrush(color_);
     painter.drawRect(r);
+}
+
+char Rectangle::getTypeCode() const {
+    return 'R';
 }

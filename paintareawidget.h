@@ -8,6 +8,8 @@
 #include <QResizeEvent>
 #include "selection.h"
 #include <Container.h>
+#include <ShapeFactory.h>
+#include <group.h>
 
 enum class Tool {
     Select,
@@ -28,6 +30,10 @@ public:
     void setCurrentTool(Tool tool);
     void setCurrentColor(const QColor& color);
     void applyColorToSelected(const QColor& color);
+    void saveShapes(std::string filename);
+    void loadShapes(std::string filename, ShapeFactory& factory);
+    void groupSelected();
+    void unGroupSelected();
 
 public slots:
     void deleteSelected();

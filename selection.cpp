@@ -1,6 +1,8 @@
 #include "selection.h"
 #include <QBrush>
 #include <cstdio>
+#include <Group.h>
+#include <Line.h>
 
 Selection::Selection() {
     printf("Selection created\n");
@@ -126,18 +128,26 @@ Selection::MousePosState Selection::checkMousePos(QPoint pos) {
 }
 
 void Selection::moveSelections(int diffX, int diffY, const QRect& widgetBounds) {
+    printf("=== Selection::moveSelections called ===\n");
+    printf("Diff: (%d,%d), Selection count: %zu\n", diffX, diffY, myStorage.size());
+
     // 1. проверяем фигуры перед перемещением
     for (Shape* obj : myStorage) {
-        if (!obj->canMove(widgetBounds, diffX, diffY)) {
+        bool canMove = obj->canMove(widgetBounds, diffX, diffY);
+        printf("Object canMove = %s\n", canMove ? "YES" : "NO");
+
+        if (!canMove) {
+            printf("❌ BLOCKED: object cannot move\n");
             return;
         }
     }
 
+    printf("✅ ALL objects can move, proceeding...\n");
+
     // 2. Перемещаем все фигуры
     for (Shape* obj : myStorage) {
         if (obj) {
-            QPoint newPos = obj->getPos() + QPoint(diffX, diffY);
-            obj->move(newPos.x(), newPos.y());
+            obj->move(diffX, diffY);
         }
     }
 
@@ -188,7 +198,6 @@ bool Selection::resizeSelections(int diffX, int diffY, const QRect& widget_rect)
         return false;
     }
 
-
     // МИНИМАЛЬНЫЙ РАЗМЕР ВЫДЕЛЕНИЯ
     if (newSize.width() < 10) {
         newSize.setWidth(10);
@@ -199,35 +208,46 @@ bool Selection::resizeSelections(int diffX, int diffY, const QRect& widget_rect)
 
     new_bounds = QRect(newPos, newSize);
 
-    //Проверяем можно ли изменить размер выделенных объектов
+    // Проверяем можно ли изменить размер выделенных объектов
     for (int i = 0; i < getCount(); i++) {
         Shape* shape = myStorage[i];
         QPoint check_point(new_bounds.topLeft().x() + shapesRelativeFrame[i].first.x() * new_bounds.width(),
-                            new_bounds.topLeft().y() + shapesRelativeFrame[i].first.y() * new_bounds.height());
+                           new_bounds.topLeft().y() + shapesRelativeFrame[i].first.y() * new_bounds.height());
         QSize check_size(new_bounds.width() * shapesRelativeFrame[i].second.width(),
-                              new_bounds.height() * shapesRelativeFrame[i].second.height());
+                         new_bounds.height() * shapesRelativeFrame[i].second.height());
         if (!(shape->canMoveAndResize(widget_rect, check_point, check_size))) {
             return false;
         }
     }
 
-    //Изменяем размер выделенных объектов
+    // ИЗМЕНЯЕМ РАЗМЕР ВЫДЕЛЕННЫХ ОБЪЕКТОВ
     for (int i = 0; i < getCount(); i++) {
         if (myStorage[i]) {
             Shape* shape = myStorage[i];
-            shape->move(new_bounds.topLeft().x() + shapesRelativeFrame[i].first.x() * new_bounds.width(),
-                        new_bounds.topLeft().y() + shapesRelativeFrame[i].first.y() * new_bounds.height());
-            shape->resize(new_bounds.width() * shapesRelativeFrame[i].second.width(),
-                          new_bounds.height() * shapesRelativeFrame[i].second.height());
+
+            // Вычисляем новые абсолютные координаты
+            QPoint new_abs_pos(
+                new_bounds.x() + shapesRelativeFrame[i].first.x() * new_bounds.width(),
+                new_bounds.y() + shapesRelativeFrame[i].first.y() * new_bounds.height()
+                );
+            QSize new_size(
+                new_bounds.width() * shapesRelativeFrame[i].second.width(),
+                new_bounds.height() * shapesRelativeFrame[i].second.height()
+                );
+
+            // Вычисляем смещение от текущей позиции к новой
+            QPoint current_pos = shape->getPos();
+            int diffX = new_abs_pos.x() - current_pos.x();
+            int diffY = new_abs_pos.y() - current_pos.y();
+
+            shape->move(diffX, diffY);
+            shape->resize(new_size.width(), new_size.height());
         }
     }
 
     frameOfSelected_ = new_bounds;
-
-
     return true;
 }
-
 
 void Selection::updateShapesRelativeFrame() {
     shapesRelativeFrame.clear();

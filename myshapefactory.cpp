@@ -4,6 +4,7 @@
 #include <ellipse.h>
 #include <triangle.h>
 #include <line.h>
+#include <group.h>
 
 Shape* MyShapeFactory::createShape(const char& code) {
     Shape* shape = nullptr;
@@ -20,6 +21,8 @@ Shape* MyShapeFactory::createShape(const char& code) {
         case 'L':
             shape = new Line();
             break;
+        case 'G':
+            shape = new Group();
         default:;
     }
     return shape;

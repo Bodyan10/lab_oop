@@ -6,13 +6,11 @@
 Triangle::Triangle() : Shape() {
 }
 
-Triangle::Triangle(QPoint coordinates, QSize size, QColor color, bool selected, std::string name) : Shape(coordinates, size, color, selected) {
-    name_ = name;
+Triangle::Triangle(QPoint coordinates, QSize size, QColor color, bool selected) : Shape(coordinates, size, color, selected) {
     printf("Triangle(QPoint coordinates, QSize size, QColor color, bool selected, std::string name)");
 }
 
 Triangle::Triangle(const Triangle& other) : Shape(other.pos_, other.size_, other.color_, other.isSelected_){
-    name_ = other.name_;
     printf("Triangle copied\n");
 }
 
@@ -42,4 +40,8 @@ void Triangle::draw(QPainter& painter) const {
     painter.drawPolygon(poly);
     printf("Triangle drawn, color (%d,%d,%d)\n",
            color_.red(), color_.green(), color_.blue());
+}
+
+char Triangle::getTypeCode() const {
+    return 'T';
 }

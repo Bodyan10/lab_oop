@@ -29,6 +29,7 @@ public:
     virtual void removeAt(int index);
     virtual void removeElement(T* element);
     virtual void removeSelected();
+    void removeElementPtr(T* element);
 
     bool hasElement(const T* el);
     virtual void clear();
@@ -37,6 +38,7 @@ public:
     T& operator[](size_t index);
 
     void loadShapes(std::string filename, ShapeFactory& factory);
+    void saveShapes(std::string filename);
 
     // Деструктор
     virtual ~Container();
@@ -170,6 +172,16 @@ void Container<T>::removeElement(T* element) {
     }
 }
 
+template<class T>
+void Container<T>::removeElementPtr(T* element) {
+    for (auto it = myStorage.begin(); it != myStorage.end(); ++it) {
+        if (*it == element) {
+            myStorage.erase(it);  // Только удаляем указатель из вектора
+            return;               // НЕ удаляем объект!
+        }
+    }
+}
+
 // Дополнительные методы для совместимости
 template<class T>
 bool Container<T>::hasElement(const T* el) {
@@ -216,13 +228,32 @@ void Container<T>::loadShapes(std::string filename, ShapeFactory& factory) {
             fscanf(stream, "%c\n", &code);
             shape  = factory.createShape(code);
             if (shape != nullptr) {
-                shape->load(stream);
+                shape->load(stream, &factory);
                 myStorage.push_back(shape);
             }
         }
         std::fclose(stream);
     }
 }
+
+template<class T>
+void Container<T>::saveShapes(std::string filename) {
+    FILE* stream;
+    int count = getCount();
+    T* shape;
+    if ((stream = std::fopen(filename.c_str(), "w")) != nullptr) {
+        std::fprintf(stream, "%d\n", count);
+        for (int i = 0; i < count; i++) {
+            shape = myStorage[i];
+            if (shape != nullptr) {
+                shape->save(stream);
+            }
+        }
+        std::fclose(stream);
+    }
+}
+
+
 
 // Деструктор
 template<class T>

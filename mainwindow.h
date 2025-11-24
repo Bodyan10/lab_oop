@@ -4,6 +4,8 @@
 #include <QMainWindow>
 #include <QActionGroup>
 #include <QColorDialog>
+#include <QFileDialog>
+#include <myshapefactory.h>
 
 namespace Ui {
 class MainWindow;
@@ -27,10 +29,15 @@ private slots:
     void onDeleteSelected();
     void onSelectAll();
     void onExit();
+    void onSave();
+    void onLoad();
+    void onGroup();
+    void onUnGroup();
 
 private:
     Ui::MainWindow *ui;
     QActionGroup* toolGroup;
+    MyShapeFactory shapeFactory;
 };
 
 #endif // MAINWINDOW_H

@@ -5,14 +5,12 @@
 Line::Line() : Shape() {
 }
 
-Line::Line(QPoint coordinates, QSize size, QColor color, bool selected, std::string name, int lineWidth) : Shape(coordinates, size, color, selected) {
-    name_ = name;
+Line::Line(QPoint coordinates, QSize size, QColor color, bool selected, int lineWidth) : Shape(coordinates, size, color, selected) {
     lineWidth_ = lineWidth;
     printf("Line(QPoint coordinates, QSize size, QColor color, bool selected, std::string name, int lineWidth) : Shape(coordinates, size, color, selected) {");
 }
 
 Line::Line(const Line& other) : Shape(other.pos_, other.size_, other.color_, other.isSelected_){
-    name_ = other.name_;
     lineWidth_ = other.lineWidth_;
     printf("Line(const Line& other) : Shape(other.pos_, other.size_, other.color_, other.isSelected_)");
 }
@@ -64,3 +62,28 @@ bool Line::adjustToFitBounds(const QRect& widgetBounds) {
     size_ = QSize(p2.x() - p1.x(), p2.y() - p1.y());
     return false;
 }
+
+void Line::save(FILE* stream) {
+    fprintf(stream, "%c\n%d %d %d %d %d %d %d %d\n", getTypeCode(),
+            pos_.x(), pos_.y(), size_.width(), size_.height(),
+            color_.red(), color_.green(), color_.blue(), lineWidth_);
+}
+
+void Line::load(FILE* stream, ShapeFactory*) {
+    int r, g, b, lw;
+    if (fscanf(stream, "%d %d %d %d %d %d %d %d\n",
+               &pos_.rx(), &pos_.ry(),
+               &size_.rwidth(), &size_.rheight(),
+               &r, &g, &b, &lw) == 8) {
+        color_ = QColor(r, g, b);
+        lineWidth_ = lw;
+    }
+}
+
+char Line::getTypeCode() const {
+    return 'L';
+}
+
+
+
+

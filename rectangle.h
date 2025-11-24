@@ -6,12 +6,13 @@
 class Rectangle : public Shape {
 public:
     Rectangle();
-    Rectangle(QPoint coordinates, QSize size, QColor color, bool selected, std::string name);
+    Rectangle(QPoint coordinates, QSize size, QColor color, bool selected);
     Rectangle(const Rectangle& other);
     Rectangle& operator=(const Rectangle& other);
     ~Rectangle();
 
     void draw(QPainter &painter) const override;
+    char getTypeCode() const override;
 };
 
 #endif // RECTANGLE_H

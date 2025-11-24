@@ -27,6 +27,7 @@ public:
     void removeSelected() override;
     void removeAt(int index) override;
     void addObject(Shape* new_object) override;
+    void updateShapesRelativeFrame();
 
 private:
     enum class ResizePositions {
@@ -37,7 +38,6 @@ private:
     };
     ResizePositions currentResizePos_ = ResizePositions::None;
     bool scaleToNewBounds(const QRect& newBounds);
-    void updateShapesRelativeFrame();
     std::vector<std::pair<QPointF, QSizeF>> shapesRelativeFrame;
     QRect frameOfSelected_;
 };

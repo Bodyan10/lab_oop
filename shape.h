@@ -6,7 +6,8 @@
 #include <QRect>
 #include <QSize>
 #include <QPainter>
-#include <string>
+#include <ShapeFactory.h>
+#include <vector>
 
 class Shape {
 public:
@@ -14,9 +15,16 @@ public:
     Shape(QPoint coordinates, QSize size, QColor color, bool selected);
     virtual ~Shape();
 
+    // Базовые операции Composite
     virtual void move(int x, int y);
     virtual void resize(int x, int y);
     virtual void changeColor(QColor color);
+
+    // Операции для Composite pattern
+    virtual void addShape(Shape* shape) { Q_UNUSED(shape); } // По умолчанию ничего не делаем
+    virtual void removeShape(Shape* shape) { Q_UNUSED(shape); }
+    virtual std::vector<Shape*> getShapes() const { return std::vector<Shape*>(); }
+    virtual bool isGroup() const { return false; }
 
     QSize getSize() const;
     QPoint getPos() const;
@@ -29,21 +37,21 @@ public:
 
     virtual void setSelected(bool selected);
     virtual bool isSelected() const;
-    std::string name() const;
 
     virtual bool adjustToFitBounds(const QRect& widgetBounds);
-    bool canMove(const QRect& widgetBounds, int diffx, int diffy);
-    bool canMoveAndResize(const QRect& widgetBounds, const QPoint& new_pos, const QSize& new_size);
+    virtual bool canMove(const QRect& widgetBounds, int diffx, int diffy);
+    virtual bool canMoveAndResize(const QRect& widgetBounds, const QPoint& new_pos, const QSize& new_size);
 
-    virtual void load(std::string filename); //Надо написать эти два метода
-    virtual void save(std::string filename);
+    virtual void load(FILE* file, ShapeFactory* factory = nullptr);
+    virtual void save(FILE* file);
+
+    virtual char getTypeCode() const = 0;
 
 protected:
     QPoint pos_;
     QSize size_;
     QColor color_;
     bool isSelected_ = false;
-    std::string name_;
 };
 
 #endif // SHAPE_H

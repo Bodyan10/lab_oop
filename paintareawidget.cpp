@@ -143,16 +143,16 @@ void PaintAreaWidget::mousePressEvent(QMouseEvent *event) {
 
             switch (currentTool) {
             case Tool::Rectangle:
-                tempShape = new Rectangle(mousePos, QSize(1, 1), currentColor, false, "Rectangle");
+                tempShape = new Rectangle(mousePos, QSize(1, 1), currentColor, false);
                 break;
             case Tool::Ellipse:
-                tempShape = new Ellipse(mousePos, QSize(1, 1), currentColor, false, "Ellipse");
+                tempShape = new Ellipse(mousePos, QSize(1, 1), currentColor, false);
                 break;
             case Tool::Triangle:
-                tempShape = new Triangle(mousePos, QSize(1, 1), currentColor, false, "Traingle");
+                tempShape = new Triangle(mousePos, QSize(1, 1), currentColor, false);
                 break;
             case Tool::Line:
-                tempShape = new Line(mousePos, QSize(1, 1), currentColor, false, "Line", 2);
+                tempShape = new Line(mousePos, QSize(1, 1), currentColor, false, 2);
                 break;
             default:
                 break;
@@ -202,16 +202,16 @@ void PaintAreaWidget::mouseReleaseEvent(QMouseEvent *event) {
 
         switch (currentTool) {
         case Tool::Rectangle:
-            finalShape = new Rectangle(creationStartPoint, QSize(abs(finalWidth), abs(finalHeight)), currentColor, false, "Rectangle");
+            finalShape = new Rectangle(creationStartPoint, QSize(abs(finalWidth), abs(finalHeight)), currentColor, false);
             break;
         case Tool::Ellipse:
-            finalShape = new Ellipse(creationStartPoint, QSize(abs(finalWidth), abs(finalHeight)), currentColor, false, "Ellipse");
+            finalShape = new Ellipse(creationStartPoint, QSize(abs(finalWidth), abs(finalHeight)), currentColor, false);
             break;
         case Tool::Triangle:
-            finalShape = new Triangle(creationStartPoint, QSize(abs(finalWidth), abs(finalHeight)), currentColor, false, "Traingle");
+            finalShape = new Triangle(creationStartPoint, QSize(abs(finalWidth), abs(finalHeight)), currentColor, false);
             break;
         case Tool::Line:
-            finalShape = new Line(creationStartPoint, QSize(finalWidth, finalHeight), currentColor, false, "Line", 2);
+            finalShape = new Line(creationStartPoint, QSize(finalWidth, finalHeight), currentColor, false, 2);
             break;
         default:
             break;
@@ -308,3 +308,77 @@ void PaintAreaWidget::clearSelection() {
     selection.clear();
 }
 
+void PaintAreaWidget::saveShapes(std::string filename) {
+    shapesContainer.saveShapes(filename);
+}
+
+void PaintAreaWidget::loadShapes(std::string filename, ShapeFactory& factory) {
+    shapesContainer.loadShapes(filename, factory);
+}
+
+void PaintAreaWidget::groupSelected() {
+    if (selection.getCount() < 2) {
+        return;
+    }
+
+    Group* newGroup = new Group();
+
+    // Собираем выделенные фигуры в группу
+    for (int i = 0; i < selection.getCount(); i++) {
+        Shape* shape = selection.getObject(i);
+        newGroup->addShape(shape);
+
+        // Удаляем фигуру из основного контейнера
+        shapesContainer.removeElementPtr(shape);
+    }
+
+    newGroup->updateGroupBounds();
+
+    // Добавляем группу в основной контейнер
+    shapesContainer.addObject(newGroup);
+
+    // Обновляем выделение
+    clearSelection();
+    selection.addObject(newGroup);
+    selection.updateShapesRelativeFrame();
+
+    update();
+}
+
+void PaintAreaWidget::unGroupSelected() {
+    if (selection.getCount() != 1) {
+        return;
+    }
+
+    Shape* selected = selection.getObject(0);
+    if (selected && selected->isGroup()) {
+        Group* group = static_cast<Group*>(selected);
+
+        // Получаем копию списка детей ДО удаления группы
+        std::vector<Shape*> children = group->getShapes();
+
+        // Очищаем детей в группе (но не удаляем их!)
+        // Создаем временный список, чтобы избежать удаления детей
+        std::vector<Shape*> tempChildren = children;
+
+        // Удаляем ссылки на детей из группы, чтобы они не удалились в деструкторе
+        for (Shape* child : tempChildren) {
+            group->removeShape(child); // Удаляем ссылку, но не удаляем объект
+        }
+
+        // Удаляем группу из контейнера (это вызовет деструктор Group)
+        shapesContainer.removeElement(group);
+
+        // Добавляем детей обратно в основной контейнер
+        clearSelection();
+        for (Shape* child : children) {
+            shapesContainer.addObject(child);
+            selection.addObject(child);
+            child->setSelected(true);
+        }
+
+        selection.updateShapesRelativeFrame();
+    }
+
+    update();
+}

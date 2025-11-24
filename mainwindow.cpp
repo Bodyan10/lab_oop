@@ -30,6 +30,10 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->actionDelete, &QAction::triggered, this, &MainWindow::onDeleteSelected);
     connect(ui->actionSelectAll, &QAction::triggered, this, &MainWindow::onSelectAll);
     connect(ui->actionExit, &QAction::triggered, this, &MainWindow::onExit);
+    connect(ui->actionSave, &QAction::triggered, this, &MainWindow::onSave);
+    connect(ui->actionLoad, &QAction::triggered, this, &MainWindow::onLoad);
+    connect(ui->actionGroup, &QAction::triggered, this, &MainWindow::onGroup);
+    connect(ui->actionUngroup, &QAction::triggered, this, &MainWindow::onUnGroup);
 
     ui->actionSelectTool->setChecked(true);
     ui->paintArea->setCurrentTool(Tool::Select);
@@ -94,4 +98,27 @@ void MainWindow::onSelectAll()
 void MainWindow::onExit()
 {
     close();
+}
+
+void MainWindow::onSave() {
+    QString filename = QFileDialog::getSaveFileName(this, "Save Shapes", "");
+    if (!filename.isEmpty()) {
+        ui->paintArea->saveShapes(filename.toStdString());
+    }
+}
+
+void MainWindow::onLoad() {
+    QString filename = QFileDialog::getOpenFileName(this, "Загрузить проект","");
+    if (!filename.isEmpty()) {
+        ui->paintArea->loadShapes(filename.toStdString(), shapeFactory);
+        ui->paintArea->update();
+    }
+}
+
+void MainWindow::onGroup() {
+    ui->paintArea->groupSelected();
+}
+
+void MainWindow::onUnGroup() {
+    ui->paintArea->unGroupSelected();
 }

@@ -13,13 +13,13 @@ Shape::Shape(QPoint coordinates, QSize size, QColor color, bool selected) {
 }
 
 Shape::~Shape() {
-    printf("Shape '%s' destroyed\n", name_.c_str());
+    printf("Shape destroyed\n");
 }
 
 QColor Shape::getColor() const { return color_; }
 
 void Shape::move(int x, int y) {
-    pos_ = QPoint(x, y);
+    pos_ = pos_ + QPoint(x, y);
 }
 
 void Shape::resize(int x, int y) {
@@ -51,9 +51,6 @@ bool Shape::isSelected() const {
     return isSelected_;
 }
 
-std::string Shape::name() const {
-    return name_;
-}
 
 bool Shape::adjustToFitBounds(const QRect& widgetBounds) {
     QRect currentBounds = getBounds();
@@ -102,3 +99,25 @@ bool Shape::canMove(const QRect& widgetBounds, int diffx, int diffy){
 bool Shape::canMoveAndResize(const QRect& widgetBound, const QPoint& new_pos, const QSize& new_size) {
     return widgetBound.contains(QRect(new_pos, new_size));
 }
+
+void Shape::save(FILE* file) {
+
+    fprintf(file, "%c\n%d %d %d %d %d %d %d\n",
+            getTypeCode(), pos_.x(), pos_.y(), size_.width(), size_.height(),
+            color_.red(), color_.green(), color_.blue());
+}
+
+void Shape::load(FILE* file, ShapeFactory* factory) {
+    Q_UNUSED(factory);
+    int r, g, b;
+    if (fscanf(file, "%d %d %d %d %d %d %d\n",
+               &pos_.rx(), &pos_.ry(),
+               &size_.rwidth(), &size_.rheight(),
+               &r, &g, &b) == 7) {
+        color_ = QColor(r, g, b);
+    } else {
+        printf("Error reading shape data\n");
+    }
+}
+
+
