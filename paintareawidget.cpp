@@ -9,7 +9,6 @@
 #include <rectangle.h>
 #include <line.h>
 
-
 PaintAreaWidget::PaintAreaWidget(QWidget *parent)
     : QWidget(parent),
     ctrlPressed(false),
@@ -228,7 +227,6 @@ void PaintAreaWidget::mouseReleaseEvent(QMouseEvent *event) {
             printf("Shape created and adjusted to fit\n");
         }
 
-
         delete tempShape;
         tempShape = nullptr;
         isCreatingShape = false;
@@ -328,7 +326,7 @@ void PaintAreaWidget::groupSelected() {
         Shape* shape = selection.getObject(i);
         newGroup->addShape(shape);
 
-        // Удаляем фигуру из основного контейнера
+        // Удаляем указатели на фигуру из основного контейнера
         shapesContainer.removeElementPtr(shape);
     }
 
@@ -350,24 +348,18 @@ void PaintAreaWidget::unGroupSelected() {
         return;
     }
 
-    Shape* selected = selection.getObject(0);
-    if (selected && selected->isGroup()) {
-        Group* group = static_cast<Group*>(selected);
+    Group* selected_group = dynamic_cast<Group*>(selection.getObject(0));
+    if (selected_group) {
 
-        // Получаем копию списка детей ДО удаления группы
-        std::vector<Shape*> children = group->getShapes();
+        // Получаем копию списка детей до удаления группы
+        std::vector<Shape*> children = selected_group->getShapes();
 
-        // Очищаем детей в группе (но не удаляем их!)
-        // Создаем временный список, чтобы избежать удаления детей
-        std::vector<Shape*> tempChildren = children;
-
-        // Удаляем ссылки на детей из группы, чтобы они не удалились в деструкторе
-        for (Shape* child : tempChildren) {
-            group->removeShape(child); // Удаляем ссылку, но не удаляем объект
+        for (Shape* child : children) {
+            selected_group->removeShape(child); // Удаляем указатели
         }
 
         // Удаляем группу из контейнера (это вызовет деструктор Group)
-        shapesContainer.removeElement(group);
+        shapesContainer.removeElement(selected_group);
 
         // Добавляем детей обратно в основной контейнер
         clearSelection();

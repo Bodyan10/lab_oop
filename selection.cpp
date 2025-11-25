@@ -1,8 +1,7 @@
 #include "selection.h"
 #include <QBrush>
 #include <cstdio>
-#include <Group.h>
-#include <Line.h>
+
 
 Selection::Selection() {
     printf("Selection created\n");
@@ -134,15 +133,10 @@ void Selection::moveSelections(int diffX, int diffY, const QRect& widgetBounds) 
     // 1. проверяем фигуры перед перемещением
     for (Shape* obj : myStorage) {
         bool canMove = obj->canMove(widgetBounds, diffX, diffY);
-        printf("Object canMove = %s\n", canMove ? "YES" : "NO");
-
         if (!canMove) {
-            printf("❌ BLOCKED: object cannot move\n");
             return;
         }
     }
-
-    printf("✅ ALL objects can move, proceeding...\n");
 
     // 2. Перемещаем все фигуры
     for (Shape* obj : myStorage) {
@@ -220,7 +214,7 @@ bool Selection::resizeSelections(int diffX, int diffY, const QRect& widget_rect)
         }
     }
 
-    // ИЗМЕНЯЕМ РАЗМЕР ВЫДЕЛЕННЫХ ОБЪЕКТОВ
+    // изменяем размер выделенных объектов
     for (int i = 0; i < getCount(); i++) {
         if (myStorage[i]) {
             Shape* shape = myStorage[i];

@@ -7,7 +7,6 @@
 #include <QSize>
 #include <QPainter>
 #include <ShapeFactory.h>
-#include <vector>
 
 class Shape {
 public:
@@ -19,12 +18,6 @@ public:
     virtual void move(int x, int y);
     virtual void resize(int x, int y);
     virtual void changeColor(QColor color);
-
-    // Операции для Composite pattern
-    virtual void addShape(Shape* shape) { Q_UNUSED(shape); } // По умолчанию ничего не делаем
-    virtual void removeShape(Shape* shape) { Q_UNUSED(shape); }
-    virtual std::vector<Shape*> getShapes() const { return std::vector<Shape*>(); }
-    virtual bool isGroup() const { return false; }
 
     QSize getSize() const;
     QPoint getPos() const;
@@ -42,7 +35,7 @@ public:
     virtual bool canMove(const QRect& widgetBounds, int diffx, int diffy);
     virtual bool canMoveAndResize(const QRect& widgetBounds, const QPoint& new_pos, const QSize& new_size);
 
-    virtual void load(FILE* file, ShapeFactory* factory = nullptr);
+    virtual void load(FILE* file, ShapeFactory* factory);
     virtual void save(FILE* file);
 
     virtual char getTypeCode() const = 0;

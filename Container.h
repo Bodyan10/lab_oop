@@ -177,12 +177,11 @@ void Container<T>::removeElementPtr(T* element) {
     for (auto it = myStorage.begin(); it != myStorage.end(); ++it) {
         if (*it == element) {
             myStorage.erase(it);  // Только удаляем указатель из вектора
-            return;               // НЕ удаляем объект!
+            return;               // не удаляем объект!
         }
     }
 }
 
-// Дополнительные методы для совместимости
 template<class T>
 bool Container<T>::hasElement(const T* el) {
     for (const T* obj : myStorage) {

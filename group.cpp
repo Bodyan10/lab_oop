@@ -1,7 +1,6 @@
 #include "group.h"
 #include <shape.h>
 #include <cstdio>
-#include <algorithm>
 
 Group::Group() : Shape() {
     printf("Group created\n");
@@ -12,24 +11,12 @@ Group::Group(QPoint coordinates, QSize size, QColor color, bool selected)
     printf("Group created with parameters\n");
 }
 
-Group::Group(const Group& other) : Shape(other) {
-    printf("Group copied\n");
-    // TODO: реализовать глубокое копирование детей
-}
-
-Group& Group::operator=(const Group& other) {
-    if (this != &other) {
-        Shape::operator=(other);
-        // TODO: реализовать глубокое копирование детей
-    }
-    return *this;
-}
-
 Group::~Group() {
     printf("Group destroyed\n");
-    // ⚠️ ВАЖНО: НЕ удаляем детей здесь!
-    // Дети должны продолжать существовать после разгруппировки
-    children_.clear(); // Просто очищаем вектор, не удаляя объекты
+    for (Shape* shape : children_) {
+        delete shape;
+    }
+    children_.clear();
     relativeCoordinates_.clear();
 }
 
@@ -60,8 +47,7 @@ void Group::updateRelativeCoordinates() {
 }
 
 void Group::applyRelativeCoordinates() {
-    if (children_.empty() || relativeCoordinates_.empty() ||
-        children_.size() != relativeCoordinates_.size()) {
+    if (children_.empty()) {
         return;
     }
 
@@ -78,11 +64,7 @@ void Group::applyRelativeCoordinates() {
         QSize newSize(
             relCoord.second.width() * size_.width(),
             relCoord.second.height() * size_.height()
-            );
-
-        // Гарантируем минимальный размер
-        newSize.setWidth(std::max(1, newSize.width()));
-        newSize.setHeight(std::max(1, newSize.height()));
+            );;
 
         // Применяем изменения
         QPoint currentPos = child->getPos();
@@ -103,7 +85,7 @@ void Group::addShape(Shape* shape) {
 void Group::removeShape(Shape* shape) {
     for (auto it = children_.begin(); it != children_.end(); ++it) {
         if (*it == shape) {
-            // Только удаляем указатель из вектора, НЕ удаляем объект!
+            // Только удаляем указатель из вектора, не удаляем объект
             children_.erase(it);
             updateGroupBounds();
             updateRelativeCoordinates();
@@ -127,12 +109,6 @@ void Group::move(int x, int y) {
 }
 
 void Group::resize(int newWidth, int newHeight) {
-    if (children_.empty() || newWidth <= 0 || newHeight <= 0) {
-        size_.setWidth(newWidth);
-        size_.setHeight(newHeight);
-        return;
-    }
-
     // Устанавливаем новый размер
     size_.setWidth(newWidth);
     size_.setHeight(newHeight);
@@ -195,8 +171,9 @@ void Group::setSelected(bool selected) {
 }
 
 bool Group::isSelected() const {
-    // Группа считается выделенной, если все дети выделены
-    if (children_.empty()) return false;
+    if (children_.empty()) {
+        return false;
+    }
 
     for (Shape* child : children_) {
         if (!child->isSelected()) {
@@ -204,35 +181,6 @@ bool Group::isSelected() const {
         }
     }
     return true;
-}
-
-bool Group::adjustToFitBounds(const QRect& widgetBounds) {
-    bool allAdjusted = true;
-
-    // Сначала корректируем саму группу
-    QRect currentBounds = getBounds();
-    if (!widgetBounds.contains(currentBounds)) {
-        int newX = std::clamp(pos_.x(), 0, widgetBounds.width() - size_.width());
-        int newY = std::clamp(pos_.y(), 0, widgetBounds.height() - size_.height());
-
-        if (newX != pos_.x() || newY != pos_.y()) {
-            move(newX - pos_.x(), newY - pos_.y());
-            allAdjusted = false;
-        }
-
-        // Корректируем размер если нужно
-        int maxWidth = widgetBounds.width() - newX;
-        int maxHeight = widgetBounds.height() - newY;
-
-        if (size_.width() > maxWidth || size_.height() > maxHeight) {
-            int newWidth = std::min(size_.width(), maxWidth);
-            int newHeight = std::min(size_.height(), maxHeight);
-            resize(newWidth, newHeight);
-            allAdjusted = false;
-        }
-    }
-
-    return allAdjusted;
 }
 
 bool Group::canMove(const QRect& widgetBounds, int diffx, int diffy) {
@@ -244,26 +192,10 @@ bool Group::canMove(const QRect& widgetBounds, int diffx, int diffy) {
     return true;
 }
 
-bool Group::canMoveAndResize(const QRect& widgetBounds, const QPoint& new_pos, const QSize& new_size) {
-    // Проверяем новые границы группы
-    QRect newBounds(new_pos, new_size);
-    if (!widgetBounds.contains(newBounds)) {
-        return false;
-    }
-
-    return true;
-}
-
 void Group::load(FILE* file, ShapeFactory* factory) {
-    int r, g, b;
     size_t shapeCount;
 
-    if (fscanf(file, "%d %d %d %d %d %d %d %zu\n",
-               &pos_.rx(), &pos_.ry(),
-               &size_.rwidth(), &size_.rheight(),
-               &r, &g, &b, &shapeCount) == 8) {
-
-        color_ = QColor(r, g, b);
+    if (fscanf(file, "%zu\n", &shapeCount) == 1) {
 
         for (size_t i = 0; i < shapeCount; i++) {
             char shapeType;
@@ -282,11 +214,8 @@ void Group::load(FILE* file, ShapeFactory* factory) {
 }
 
 void Group::save(FILE* file) {
-    fprintf(file, "%c\n%d %d %d %d %d %d %d %zu\n",
+    fprintf(file, "%c\n%zu\n",
             getTypeCode(),
-            pos_.x(), pos_.y(),
-            size_.width(), size_.height(),
-            color_.red(), color_.green(), color_.blue(),
             children_.size());
 
     for (Shape* child : children_) {
