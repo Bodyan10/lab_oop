@@ -2,14 +2,14 @@
 #include <QPainter>
 #include <cstdio>
 
-Rectangle::Rectangle() : Shape() {
+Rectangle::Rectangle() : MyShape() {
 }
 
-Rectangle::Rectangle(QPoint coordinates, QSize size, QColor color, bool selected) : Shape(coordinates, size, color, selected) {
+Rectangle::Rectangle(QPoint coordinates, QSize size, QColor color, bool selected) : MyShape(coordinates, size, color, selected) {
     printf("Rectangle(QPoint coordinates, QSize size, QColor color, bool selected, std::string name)");
 }
 
-Rectangle::Rectangle(const Rectangle& other) : Shape(other.pos_, other.size_, other.color_, other.isSelected_){
+Rectangle::Rectangle(const Rectangle& other) : MyShape(other.pos_, other.size_, other.color_, other.isSelected_){
     printf("Rectangle copied\n");
 }
 

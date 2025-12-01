@@ -2,7 +2,6 @@
 #include <QBrush>
 #include <cstdio>
 
-
 Selection::Selection() {
     printf("Selection created\n");
 }
@@ -60,7 +59,7 @@ QRect Selection::getArea() const {
 }
 
 bool Selection::hasObjectInPoint(QPoint point) const {
-    for (Shape* obj : myStorage) {
+    for (MyShape* obj : myStorage) {
         if (obj && obj->hasPointIn(point)) {
             return true;
         }
@@ -131,7 +130,7 @@ void Selection::moveSelections(int diffX, int diffY, const QRect& widgetBounds) 
     printf("Diff: (%d,%d), Selection count: %zu\n", diffX, diffY, myStorage.size());
 
     // 1. проверяем фигуры перед перемещением
-    for (Shape* obj : myStorage) {
+    for (MyShape* obj : myStorage) {
         bool canMove = obj->canMove(widgetBounds, diffX, diffY);
         if (!canMove) {
             return;
@@ -139,7 +138,7 @@ void Selection::moveSelections(int diffX, int diffY, const QRect& widgetBounds) 
     }
 
     // 2. Перемещаем все фигуры
-    for (Shape* obj : myStorage) {
+    for (MyShape* obj : myStorage) {
         if (obj) {
             obj->move(diffX, diffY);
         }
@@ -204,7 +203,7 @@ bool Selection::resizeSelections(int diffX, int diffY, const QRect& widget_rect)
 
     // Проверяем можно ли изменить размер выделенных объектов
     for (int i = 0; i < getCount(); i++) {
-        Shape* shape = myStorage[i];
+        MyShape* shape = myStorage[i];
         QPoint check_point(new_bounds.topLeft().x() + shapesRelativeFrame[i].first.x() * new_bounds.width(),
                            new_bounds.topLeft().y() + shapesRelativeFrame[i].first.y() * new_bounds.height());
         QSize check_size(new_bounds.width() * shapesRelativeFrame[i].second.width(),
@@ -217,7 +216,7 @@ bool Selection::resizeSelections(int diffX, int diffY, const QRect& widget_rect)
     // изменяем размер выделенных объектов
     for (int i = 0; i < getCount(); i++) {
         if (myStorage[i]) {
-            Shape* shape = myStorage[i];
+            MyShape* shape = myStorage[i];
 
             // Вычисляем новые абсолютные координаты
             QPoint new_abs_pos(
@@ -248,7 +247,7 @@ void Selection::updateShapesRelativeFrame() {
 
     frameOfSelected_ = getArea();
 
-    for (Shape* obj : myStorage) {
+    for (MyShape* obj : myStorage) {
         QPointF objRelativePos(static_cast<double>(obj->getPos().x() - frameOfSelected_.topLeft().x()) / frameOfSelected_.width(),
                                static_cast<double>(obj->getPos().y() - frameOfSelected_.topLeft().y()) / frameOfSelected_.height());
 
@@ -260,10 +259,11 @@ void Selection::updateShapesRelativeFrame() {
 }
 
 void Selection::clear() {
+    // Снимаем выделение со всех объектов перед очисткой
     myStorage.clear();
+    notifyEveryone();
     updateShapesRelativeFrame();
 }
-
 void Selection::removeAt(int index) {
     if (index < 0 || index >= getCount()) {
         return;
@@ -271,14 +271,16 @@ void Selection::removeAt(int index) {
 
     myStorage.erase(myStorage.begin() + index);
     updateShapesRelativeFrame();
+    notifyEveryone();
 }
 
 void Selection::removeSelected() {
     clear();
     updateShapesRelativeFrame();
+    notifyEveryone();
 }
 
-void Selection::removeElement(Shape* element) {
+void Selection::removeElement(MyShape* element) {
     for (int i = 0; i < getCount(); i++) {
         if (getObject(i) == element) {
             removeAt(i);
@@ -286,9 +288,10 @@ void Selection::removeElement(Shape* element) {
         }
     }
     updateShapesRelativeFrame();
+    notifyEveryone();
 }
 
-void Selection::addObject(Shape* new_object) {
+void Selection::addObject(MyShape* new_object) {
     Container::addObject(new_object);
     updateShapesRelativeFrame();
 }

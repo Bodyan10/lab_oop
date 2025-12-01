@@ -1,9 +1,9 @@
 #ifndef LINE_H
 #define LINE_H
 
-#include "shape.h"
+#include "myshape.h"
 
-class Line : public Shape {
+class Line : public MyShape {
 public:
     Line();
     Line(QPoint coordinates, QSize size, QColor color, bool selected, int lineWidth);

@@ -1,9 +1,9 @@
 #ifndef ELLIPSE_H
 #define ELLIPSE_H
 
-#include "shape.h"
+#include "myshape.h"
 
-class Ellipse : public Shape {
+class Ellipse : public MyShape {
 public:
     Ellipse();
     Ellipse(QPoint coordinates, QSize size, QColor color, bool selected);

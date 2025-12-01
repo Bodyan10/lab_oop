@@ -3,14 +3,14 @@
 #include <QPolygon>
 #include <cstdio>
 
-Triangle::Triangle() : Shape() {
+Triangle::Triangle() : MyShape() {
 }
 
-Triangle::Triangle(QPoint coordinates, QSize size, QColor color, bool selected) : Shape(coordinates, size, color, selected) {
+Triangle::Triangle(QPoint coordinates, QSize size, QColor color, bool selected) : MyShape(coordinates, size, color, selected) {
     printf("Triangle(QPoint coordinates, QSize size, QColor color, bool selected, std::string name)");
 }
 
-Triangle::Triangle(const Triangle& other) : Shape(other.pos_, other.size_, other.color_, other.isSelected_){
+Triangle::Triangle(const Triangle& other) : MyShape(other.pos_, other.size_, other.color_, other.isSelected_){
     printf("Triangle copied\n");
 }
 

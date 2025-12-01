@@ -1,12 +1,12 @@
 #ifndef SELECTION_H
 #define SELECTION_H
 
-#include "shape.h"
+#include "myshape.h"
 #include <QPainter>
 #include <QRect>
 #include <Container.h>
 
-class Selection : public Container<Shape> {
+class Selection : public Container<MyShape> {
 public:
     enum class MousePosState {
         TopLeft, TopRight, BottomLeft, BottomRight,
@@ -23,10 +23,10 @@ public:
     void moveSelections(int diffX, int diffY, const QRect&);
     bool resizeSelections(int diffX, int diffY, const QRect& widget_rect);
     void clear() override;
-    void removeElement(Shape* element) override;
+    void removeElement(MyShape* element) override;
     void removeSelected() override;
     void removeAt(int index) override;
-    void addObject(Shape* new_object) override;
+    void addObject(MyShape* new_object) override;
     void updateShapesRelativeFrame();
 
 private:
@@ -37,7 +37,6 @@ private:
         None
     };
     ResizePositions currentResizePos_ = ResizePositions::None;
-    bool scaleToNewBounds(const QRect& newBounds);
     std::vector<std::pair<QPointF, QSizeF>> shapesRelativeFrame;
     QRect frameOfSelected_;
 };

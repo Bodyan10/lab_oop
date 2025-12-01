@@ -2,17 +2,17 @@
 #include <QPainter>
 #include <cstdio>
 
-Line::Line() : Shape() {
+Line::Line() : MyShape() {
 }
 
-Line::Line(QPoint coordinates, QSize size, QColor color, bool selected, int lineWidth) : Shape(coordinates, size, color, selected) {
+Line::Line(QPoint coordinates, QSize size, QColor color, bool selected, int lineWidth) : MyShape(coordinates, size, color, selected) {
     lineWidth_ = lineWidth;
-    printf("Line(QPoint coordinates, QSize size, QColor color, bool selected, std::string name, int lineWidth) : Shape(coordinates, size, color, selected) {");
+    printf("Line(QPoint coordinates, QSize size, QColor color, bool selected, std::string name, int lineWidth) : MyShape(coordinates, size, color, selected) {");
 }
 
-Line::Line(const Line& other) : Shape(other.pos_, other.size_, other.color_, other.isSelected_){
+Line::Line(const Line& other) : MyShape(other.pos_, other.size_, other.color_, other.isSelected_){
     lineWidth_ = other.lineWidth_;
-    printf("Line(const Line& other) : Shape(other.pos_, other.size_, other.color_, other.isSelected_)");
+    printf("Line(const Line& other) : MyShape(other.pos_, other.size_, other.color_, other.isSelected_)");
 }
 
 Line& Line::operator=(const Line& other) {
@@ -83,7 +83,3 @@ void Line::load(FILE* stream, ShapeFactory*) {
 char Line::getTypeCode() const {
     return 'L';
 }
-
-
-
-

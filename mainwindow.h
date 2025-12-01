@@ -6,6 +6,7 @@
 #include <QColorDialog>
 #include <QFileDialog>
 #include <myshapefactory.h>
+#include <mytreewidget.h>
 
 namespace Ui {
 class MainWindow;
@@ -25,6 +26,7 @@ private slots:
     void onEllipseTool();
     void onTriangleTool();
     void onLineTool();
+    void onArrowTool();
     void onChangeColor();
     void onDeleteSelected();
     void onSelectAll();

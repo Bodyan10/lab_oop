@@ -31,9 +31,14 @@ public:
     QAction *actionChangeColor;
     QAction *actionSelectTool;
     QAction *actionRectangleTool;
-    QAction *actionCircleTool;
+    QAction *actionEllipseTool;
     QAction *actionTriangleTool;
     QAction *actionLineTool;
+    QAction *actionSave;
+    QAction *actionLoad;
+    QAction *actionGroup;
+    QAction *actionUngroup;
+    QAction *actionArrowTool;
     QWidget *centralwidget;
     PaintAreaWidget *paintArea;
     QMenuBar *menubar;
@@ -48,7 +53,7 @@ public:
     {
         if (MainWindow->objectName().isEmpty())
             MainWindow->setObjectName("MainWindow");
-        MainWindow->resize(1034, 812);
+        MainWindow->resize(1164, 610);
         actionExit = new QAction(MainWindow);
         actionExit->setObjectName("actionExit");
         actionDelete = new QAction(MainWindow);
@@ -64,24 +69,39 @@ public:
         actionRectangleTool = new QAction(MainWindow);
         actionRectangleTool->setObjectName("actionRectangleTool");
         actionRectangleTool->setCheckable(true);
-        actionCircleTool = new QAction(MainWindow);
-        actionCircleTool->setObjectName("actionCircleTool");
-        actionCircleTool->setCheckable(true);
+        actionEllipseTool = new QAction(MainWindow);
+        actionEllipseTool->setObjectName("actionEllipseTool");
+        actionEllipseTool->setCheckable(true);
         actionTriangleTool = new QAction(MainWindow);
         actionTriangleTool->setObjectName("actionTriangleTool");
         actionTriangleTool->setCheckable(true);
         actionLineTool = new QAction(MainWindow);
         actionLineTool->setObjectName("actionLineTool");
         actionLineTool->setCheckable(true);
+        actionSave = new QAction(MainWindow);
+        actionSave->setObjectName("actionSave");
+        actionSave->setMenuRole(QAction::MenuRole::NoRole);
+        actionLoad = new QAction(MainWindow);
+        actionLoad->setObjectName("actionLoad");
+        actionLoad->setMenuRole(QAction::MenuRole::NoRole);
+        actionGroup = new QAction(MainWindow);
+        actionGroup->setObjectName("actionGroup");
+        actionGroup->setMenuRole(QAction::MenuRole::NoRole);
+        actionUngroup = new QAction(MainWindow);
+        actionUngroup->setObjectName("actionUngroup");
+        actionUngroup->setMenuRole(QAction::MenuRole::NoRole);
+        actionArrowTool = new QAction(MainWindow);
+        actionArrowTool->setObjectName("actionArrowTool");
+        actionArrowTool->setMenuRole(QAction::MenuRole::NoRole);
         centralwidget = new QWidget(MainWindow);
         centralwidget->setObjectName("centralwidget");
         paintArea = new PaintAreaWidget(centralwidget);
         paintArea->setObjectName("paintArea");
-        paintArea->setGeometry(QRect(20, 10, 1001, 701));
+        paintArea->setGeometry(QRect(29, 19, 991, 501));
         MainWindow->setCentralWidget(centralwidget);
         menubar = new QMenuBar(MainWindow);
         menubar->setObjectName("menubar");
-        menubar->setGeometry(QRect(0, 0, 1034, 25));
+        menubar->setGeometry(QRect(0, 0, 1164, 25));
         menu = new QMenu(menubar);
         menu->setObjectName("menu");
         menu_2 = new QMenu(menu);
@@ -108,17 +128,24 @@ public:
         menu_3->addAction(actionChangeColor);
         menu_4->addAction(actionSelectTool);
         menu_4->addAction(actionRectangleTool);
-        menu_4->addAction(actionCircleTool);
+        menu_4->addAction(actionEllipseTool);
         menu_4->addAction(actionTriangleTool);
         menu_4->addAction(actionLineTool);
         toolBar->addAction(actionSelectTool);
         toolBar->addAction(actionRectangleTool);
-        toolBar->addAction(actionCircleTool);
+        toolBar->addAction(actionEllipseTool);
         toolBar->addAction(actionTriangleTool);
         toolBar->addAction(actionLineTool);
+        toolBar->addAction(actionArrowTool);
         toolBar->addSeparator();
         toolBar->addAction(actionChangeColor);
         toolBar->addAction(actionDelete);
+        toolBar->addSeparator();
+        toolBar->addAction(actionSave);
+        toolBar->addAction(actionLoad);
+        toolBar->addSeparator();
+        toolBar->addAction(actionGroup);
+        toolBar->addAction(actionUngroup);
 
         retranslateUi(MainWindow);
 
@@ -152,15 +179,26 @@ public:
 #if QT_CONFIG(shortcut)
         actionRectangleTool->setShortcut(QCoreApplication::translate("MainWindow", "R", nullptr));
 #endif // QT_CONFIG(shortcut)
-        actionCircleTool->setText(QCoreApplication::translate("MainWindow", "\320\232\321\200\321\203\320\263", nullptr));
+        actionEllipseTool->setText(QCoreApplication::translate("MainWindow", "\320\255\320\273\320\273\320\270\320\277\321\201", nullptr));
 #if QT_CONFIG(shortcut)
-        actionCircleTool->setShortcut(QCoreApplication::translate("MainWindow", "C", nullptr));
+        actionEllipseTool->setShortcut(QCoreApplication::translate("MainWindow", "C", nullptr));
 #endif // QT_CONFIG(shortcut)
         actionTriangleTool->setText(QCoreApplication::translate("MainWindow", "\320\242\321\200\320\265\321\203\320\263\320\276\320\273\321\214\320\275\320\270\320\272", nullptr));
 #if QT_CONFIG(shortcut)
         actionTriangleTool->setShortcut(QCoreApplication::translate("MainWindow", "T", nullptr));
 #endif // QT_CONFIG(shortcut)
         actionLineTool->setText(QCoreApplication::translate("MainWindow", "\320\236\321\202\321\200\320\265\320\267\320\276\320\272", nullptr));
+#if QT_CONFIG(shortcut)
+        actionLineTool->setShortcut(QCoreApplication::translate("MainWindow", "L", nullptr));
+#endif // QT_CONFIG(shortcut)
+        actionSave->setText(QCoreApplication::translate("MainWindow", "\320\241\320\276\321\205\321\200\320\260\320\275\320\270\321\202\321\214", nullptr));
+#if QT_CONFIG(shortcut)
+        actionSave->setShortcut(QCoreApplication::translate("MainWindow", "Ctrl+S", nullptr));
+#endif // QT_CONFIG(shortcut)
+        actionLoad->setText(QCoreApplication::translate("MainWindow", "\320\227\320\260\320\263\321\200\321\203\320\267\320\270\321\202\321\214", nullptr));
+        actionGroup->setText(QCoreApplication::translate("MainWindow", "\320\241\320\263\321\200\321\203\320\277\320\277\320\270\321\200\320\276\320\262\320\260\321\202\321\214", nullptr));
+        actionUngroup->setText(QCoreApplication::translate("MainWindow", "\320\240\320\260\320\267\320\263\321\200\321\203\320\277\320\277\320\270\321\200\320\276\320\262\320\260\321\202\321\214", nullptr));
+        actionArrowTool->setText(QCoreApplication::translate("MainWindow", "\320\241\321\202\321\200\320\265\320\273\320\272\320\260", nullptr));
         menu->setTitle(QCoreApplication::translate("MainWindow", "&\320\244\320\260\320\271\320\273", nullptr));
         menu_2->setTitle(QCoreApplication::translate("MainWindow", "&\320\237\321\200\320\260\320\262\320\272\320\260", nullptr));
         menu_3->setTitle(QCoreApplication::translate("MainWindow", "&\320\222\320\270\320\264", nullptr));

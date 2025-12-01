@@ -1,23 +1,24 @@
+
 #ifndef GROUP_H
 #define GROUP_H
-#include <shape.h>
+#include <myshape.h>
 #include <utility>
 #include <vector>
 
-class Group : public Shape {
+class Group : public MyShape {
 public:
     Group();
     Group(QPoint coordinates, QSize size, QColor color, bool selected);
     ~Group();
 
     // Group operations
-    void addShape(Shape* shape);
-    void removeShape(Shape* shape);
+    void addShape(MyShape* shape);
+    void removeShape(MyShape* shape);
     void updateRelativeCoordinates();
     void updateGroupBounds();
-    std::vector<Shape*> getShapes() const;
+    std::vector<MyShape*> getShapes() const;
 
-    // Shape operations
+    // MyShape operations
     void move(int x, int y) override;
     void resize(int x, int y) override;
     void changeColor(QColor color) override;
@@ -36,7 +37,7 @@ public:
     char getTypeCode() const override;
 
 private:
-    std::vector<Shape*> children_;
+    std::vector<MyShape*> children_;
     std::vector<std::pair<QPointF, QSizeF>> relativeCoordinates_; // Относительные координаты
 
     void applyRelativeCoordinates(); // Применяем относительные координаты

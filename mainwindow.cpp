@@ -1,15 +1,18 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <cstdio>
+#include <qdockwidget.h>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    setCentralWidget(ui->paintArea);
-
+    QDockWidget *dock = new QDockWidget("", this);
+    dock->setWidget(ui->paintArea->myTree);
     printf("MainWindow created\n");
+    addDockWidget(Qt::RightDockWidgetArea, dock);
+    setCentralWidget(ui->paintArea);
 
 
     toolGroup = new QActionGroup(this);
@@ -25,6 +28,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->actionEllipseTool, &QAction::triggered, this, &MainWindow::onEllipseTool);
     connect(ui->actionTriangleTool, &QAction::triggered, this, &MainWindow::onTriangleTool);
     connect(ui->actionLineTool, &QAction::triggered, this, &MainWindow::onLineTool);
+    connect(ui->actionArrowTool, &QAction::triggered, this, &MainWindow::onArrowTool);
 
     connect(ui->actionChangeColor, &QAction::triggered, this, &MainWindow::onChangeColor);
     connect(ui->actionDelete, &QAction::triggered, this, &MainWindow::onDeleteSelected);
@@ -121,4 +125,8 @@ void MainWindow::onGroup() {
 
 void MainWindow::onUnGroup() {
     ui->paintArea->unGroupSelected();
+}
+
+void MainWindow::onArrowTool() {
+    ui->paintArea->onArrowTool();
 }

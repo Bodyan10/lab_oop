@@ -42,13 +42,18 @@ template <> constexpr inline auto MainWindow::qt_create_metaobjectdata<qt_meta_t
         "onSelectTool",
         "",
         "onRectangleTool",
-        "onCircleTool",
+        "onEllipseTool",
         "onTriangleTool",
         "onLineTool",
+        "onArrowTool",
         "onChangeColor",
         "onDeleteSelected",
         "onSelectAll",
-        "onExit"
+        "onExit",
+        "onSave",
+        "onLoad",
+        "onGroup",
+        "onUnGroup"
     };
 
     QtMocHelpers::UintData qt_methods {
@@ -56,20 +61,30 @@ template <> constexpr inline auto MainWindow::qt_create_metaobjectdata<qt_meta_t
         QtMocHelpers::SlotData<void()>(1, 2, QMC::AccessPrivate, QMetaType::Void),
         // Slot 'onRectangleTool'
         QtMocHelpers::SlotData<void()>(3, 2, QMC::AccessPrivate, QMetaType::Void),
-        // Slot 'onCircleTool'
+        // Slot 'onEllipseTool'
         QtMocHelpers::SlotData<void()>(4, 2, QMC::AccessPrivate, QMetaType::Void),
         // Slot 'onTriangleTool'
         QtMocHelpers::SlotData<void()>(5, 2, QMC::AccessPrivate, QMetaType::Void),
         // Slot 'onLineTool'
         QtMocHelpers::SlotData<void()>(6, 2, QMC::AccessPrivate, QMetaType::Void),
-        // Slot 'onChangeColor'
+        // Slot 'onArrowTool'
         QtMocHelpers::SlotData<void()>(7, 2, QMC::AccessPrivate, QMetaType::Void),
-        // Slot 'onDeleteSelected'
+        // Slot 'onChangeColor'
         QtMocHelpers::SlotData<void()>(8, 2, QMC::AccessPrivate, QMetaType::Void),
-        // Slot 'onSelectAll'
+        // Slot 'onDeleteSelected'
         QtMocHelpers::SlotData<void()>(9, 2, QMC::AccessPrivate, QMetaType::Void),
-        // Slot 'onExit'
+        // Slot 'onSelectAll'
         QtMocHelpers::SlotData<void()>(10, 2, QMC::AccessPrivate, QMetaType::Void),
+        // Slot 'onExit'
+        QtMocHelpers::SlotData<void()>(11, 2, QMC::AccessPrivate, QMetaType::Void),
+        // Slot 'onSave'
+        QtMocHelpers::SlotData<void()>(12, 2, QMC::AccessPrivate, QMetaType::Void),
+        // Slot 'onLoad'
+        QtMocHelpers::SlotData<void()>(13, 2, QMC::AccessPrivate, QMetaType::Void),
+        // Slot 'onGroup'
+        QtMocHelpers::SlotData<void()>(14, 2, QMC::AccessPrivate, QMetaType::Void),
+        // Slot 'onUnGroup'
+        QtMocHelpers::SlotData<void()>(15, 2, QMC::AccessPrivate, QMetaType::Void),
     };
     QtMocHelpers::UintData qt_properties {
     };
@@ -95,13 +110,18 @@ void MainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, 
         switch (_id) {
         case 0: _t->onSelectTool(); break;
         case 1: _t->onRectangleTool(); break;
-        case 2: _t->onCircleTool(); break;
+        case 2: _t->onEllipseTool(); break;
         case 3: _t->onTriangleTool(); break;
         case 4: _t->onLineTool(); break;
-        case 5: _t->onChangeColor(); break;
-        case 6: _t->onDeleteSelected(); break;
-        case 7: _t->onSelectAll(); break;
-        case 8: _t->onExit(); break;
+        case 5: _t->onArrowTool(); break;
+        case 6: _t->onChangeColor(); break;
+        case 7: _t->onDeleteSelected(); break;
+        case 8: _t->onSelectAll(); break;
+        case 9: _t->onExit(); break;
+        case 10: _t->onSave(); break;
+        case 11: _t->onLoad(); break;
+        case 12: _t->onGroup(); break;
+        case 13: _t->onUnGroup(); break;
         default: ;
         }
     }
@@ -127,14 +147,14 @@ int MainWindow::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 9)
+        if (_id < 14)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 9;
+        _id -= 14;
     }
     if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 9)
+        if (_id < 14)
             *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType();
-        _id -= 9;
+        _id -= 14;
     }
     return _id;
 }

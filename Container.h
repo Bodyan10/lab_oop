@@ -6,9 +6,10 @@
 #include <stdio.h>
 #include <myshapefactory.h>
 #include <string>
+#include <observablemixin.h>
 
 template <class T>
-class Container {
+class Container : public ObservableMixin {
 public:
     // Конструкторы
     Container();
@@ -120,6 +121,7 @@ T* Container<T>::getObject(int index) {
 template<class T>
 void Container<T>::addObject(T* new_object) {
     myStorage.push_back(new_object);
+    notifyEveryone();
 }
 
 template<class T>
@@ -133,6 +135,7 @@ void Container<T>::setObject(int index, T* new_object) {
         delete myStorage[index];
         myStorage[index] = new_object;
     }
+    notifyEveryone();
 }
 
 // Удаление элементов
@@ -150,6 +153,7 @@ void Container<T>::removeAt(int index) {
 
     // Удаляем указатель из вектора
     myStorage.erase(myStorage.begin() + index);
+    notifyEveryone();
 }
 
 template<class T>
@@ -160,14 +164,18 @@ void Container<T>::removeSelected() {
             myStorage.erase(myStorage.begin() + i);
         }
     }
+    notifyEveryone();
 }
 
 template<class T>
 void Container<T>::removeElement(T* element) {
-    for (int i = 0; i < getCount(); i++) {
-        if (getObject(i) == element) {
-            removeAt(i);
+    for (auto it = myStorage.begin(); it != myStorage.end(); ) {
+        if (*it == element) {
+            delete *it;  // Удаляем объект
+            it = myStorage.erase(it);  // Правильная работа с итератором
             return;
+        } else {
+            ++it;
         }
     }
 }
@@ -177,6 +185,7 @@ void Container<T>::removeElementPtr(T* element) {
     for (auto it = myStorage.begin(); it != myStorage.end(); ++it) {
         if (*it == element) {
             myStorage.erase(it);  // Только удаляем указатель из вектора
+            notifyEveryone();
             return;               // не удаляем объект!
         }
     }
@@ -198,6 +207,7 @@ void Container<T>::clear() {
         }
     }
     myStorage.clear();
+    notifyEveryone();
 }
 
 template<class T>
@@ -233,6 +243,7 @@ void Container<T>::loadShapes(std::string filename, ShapeFactory& factory) {
         }
         std::fclose(stream);
     }
+    notifyEveryone();
 }
 
 template<class T>
@@ -251,8 +262,6 @@ void Container<T>::saveShapes(std::string filename) {
         std::fclose(stream);
     }
 }
-
-
 
 // Деструктор
 template<class T>

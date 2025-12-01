@@ -2,14 +2,14 @@
 #include <QPainter>
 #include <cstdio>
 
-Ellipse::Ellipse() : Shape() {
+Ellipse::Ellipse() : MyShape() {
 }
 
-Ellipse::Ellipse(QPoint coordinates, QSize size, QColor color, bool selected) : Shape(coordinates, size, color, selected) {
+Ellipse::Ellipse(QPoint coordinates, QSize size, QColor color, bool selected) : MyShape(coordinates, size, color, selected) {
     printf("Ellipse(QPoint coordinates, QSize size, QColor color, bool selected, std::string name)");
 }
 
-Ellipse::Ellipse(const Ellipse& other) : Shape(other.pos_, other.size_, other.color_, other.isSelected_){
+Ellipse::Ellipse(const Ellipse& other) : MyShape(other.pos_, other.size_, other.color_, other.isSelected_){
     printf("Ellipse copied\n");
 }
 
@@ -37,13 +37,3 @@ void Ellipse::draw(QPainter& painter) const {
 char Ellipse::getTypeCode() const {
     return 'E';
 }
-
-
-
-
-
-
-
-
-
-

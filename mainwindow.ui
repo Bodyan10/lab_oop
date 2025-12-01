@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1034</width>
-    <height>812</height>
+    <width>1164</width>
+    <height>610</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,10 +17,10 @@
    <widget class="PaintAreaWidget" name="paintArea" native="true">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>10</y>
-      <width>1001</width>
-      <height>701</height>
+      <x>29</x>
+      <y>19</y>
+      <width>991</width>
+      <height>501</height>
      </rect>
     </property>
    </widget>
@@ -30,7 +30,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1034</width>
+     <width>1164</width>
      <height>25</height>
     </rect>
    </property>
@@ -57,7 +57,7 @@
      </property>
      <addaction name="actionSelectTool"/>
      <addaction name="actionRectangleTool"/>
-     <addaction name="actionCircleTool"/>
+     <addaction name="actionEllipseTool"/>
      <addaction name="actionTriangleTool"/>
      <addaction name="actionLineTool"/>
     </widget>
@@ -81,12 +81,19 @@
    </attribute>
    <addaction name="actionSelectTool"/>
    <addaction name="actionRectangleTool"/>
-   <addaction name="actionCircleTool"/>
+   <addaction name="actionEllipseTool"/>
    <addaction name="actionTriangleTool"/>
    <addaction name="actionLineTool"/>
+   <addaction name="actionArrowTool"/>
    <addaction name="separator"/>
    <addaction name="actionChangeColor"/>
    <addaction name="actionDelete"/>
+   <addaction name="separator"/>
+   <addaction name="actionSave"/>
+   <addaction name="actionLoad"/>
+   <addaction name="separator"/>
+   <addaction name="actionGroup"/>
+   <addaction name="actionUngroup"/>
   </widget>
   <action name="actionExit">
    <property name="text">
@@ -145,12 +152,12 @@
     <string>R</string>
    </property>
   </action>
-  <action name="actionCircleTool">
+  <action name="actionEllipseTool">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Круг</string>
+    <string>Эллипс</string>
    </property>
    <property name="shortcut">
     <string>C</string>
@@ -173,6 +180,52 @@
    </property>
    <property name="text">
     <string>Отрезок</string>
+   </property>
+   <property name="shortcut">
+    <string>L</string>
+   </property>
+  </action>
+  <action name="actionSave">
+   <property name="text">
+    <string>Сохранить</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionLoad">
+   <property name="text">
+    <string>Загрузить</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionGroup">
+   <property name="text">
+    <string>Сгруппировать</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionUngroup">
+   <property name="text">
+    <string>Разгруппировать</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionArrowTool">
+   <property name="text">
+    <string>Стрелка</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
  </widget>

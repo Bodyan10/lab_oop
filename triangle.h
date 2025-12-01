@@ -1,9 +1,9 @@
 #ifndef TRIANGLE_H
 #define TRIANGLE_H
 
-#include "shape.h"
+#include "myshape.h"
 
-class Triangle : public Shape {
+class Triangle : public MyShape {
 public:
     Triangle();
     Triangle(QPoint coordinates, QSize size, QColor color, bool selected);

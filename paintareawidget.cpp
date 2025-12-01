@@ -8,6 +8,8 @@
 #include <triangle.h>
 #include <rectangle.h>
 #include <line.h>
+#include <arrow.h>>
+#include <QMessageBox>
 
 PaintAreaWidget::PaintAreaWidget(QWidget *parent)
     : QWidget(parent),
@@ -23,6 +25,9 @@ PaintAreaWidget::PaintAreaWidget(QWidget *parent)
     printf("PaintAreaWidget created\n");
     setFocusPolicy(Qt::StrongFocus);
     setMouseTracking(true);
+    myTree = new MyTreeWidget(&shapesContainer, &selection);
+    this->selection.addObserver(this);
+    this->shapesContainer.addObserver(this);
 
 }
 
@@ -56,13 +61,20 @@ void PaintAreaWidget::applyColorToSelected(const QColor& color) {
 void PaintAreaWidget::deleteSelected() {
     selection.clear();
     shapesContainer.removeSelected();
+    for (int i = shapesContainer.getCount() - 1; i >= 0; i--) {
+        if (Arrow* arrow = dynamic_cast<Arrow*>(shapesContainer.getObject(i))) {
+            if (!arrow->getFrom() || !arrow->getTo()) {
+                shapesContainer.removeAt(i);
+            }
+        }
+    }
     update();
 }
 
 void PaintAreaWidget::selectAll() {
     clearSelection();
     for (int i = 0; i < shapesContainer.getCount(); i++) {
-        Shape* shape = shapesContainer.getObject(i);
+        MyShape* shape = shapesContainer.getObject(i);
         selection.addObject(shape);
         shape->setSelected(true);
     }
@@ -79,7 +91,7 @@ void PaintAreaWidget::paintEvent(QPaintEvent *event) {
 
     // 2. Рисуем фигуры
     for (int i = 0; i < shapesContainer.getCount(); i++) {
-        Shape* shape = shapesContainer.getObject(i);
+        MyShape* shape = shapesContainer.getObject(i);
         if (shape) {
             shape->draw(painter);
         }
@@ -97,6 +109,7 @@ void PaintAreaWidget::paintEvent(QPaintEvent *event) {
 }
 
 void PaintAreaWidget::mousePressEvent(QMouseEvent *event) {
+
     if (event->button() == Qt::LeftButton) {
         QPoint mousePos = event->pos();
 
@@ -110,10 +123,10 @@ void PaintAreaWidget::mousePressEvent(QMouseEvent *event) {
 
         if (currentTool == Tool::Select) {
             // Режим выделения
-            std::vector<Shape*> shapesUnderMouse = findShapesAtPoint(mousePos);
+            std::vector<MyShape*> shapesUnderMouse = findShapesAtPoint(mousePos);
 
             if (!shapesUnderMouse.empty()) {
-                Shape* clickedShape = shapesUnderMouse[0];
+                MyShape* clickedShape = shapesUnderMouse[0];
                 //ctrl не нажат
                 if (!ctrlPressed) {
                     clearSelection();
@@ -197,7 +210,7 @@ void PaintAreaWidget::mouseReleaseEvent(QMouseEvent *event) {
         int finalHeight = releasePos.y() - creationStartPoint.y();
 
 
-        Shape* finalShape = nullptr;
+        MyShape* finalShape = nullptr;
 
         switch (currentTool) {
         case Tool::Rectangle:
@@ -224,7 +237,7 @@ void PaintAreaWidget::mouseReleaseEvent(QMouseEvent *event) {
             clearSelection();
             finalShape->setSelected(true);
             selection.addObject(finalShape);
-            printf("Shape created and adjusted to fit\n");
+            printf("MyShape created and adjusted to fit\n");
         }
 
         delete tempShape;
@@ -285,12 +298,12 @@ void PaintAreaWidget::resizeEvent(QResizeEvent *event) {
     update();
 }
 
-std::vector<Shape*> PaintAreaWidget::findShapesAtPoint(const QPoint& point) {
-    std::vector<Shape*> result;
+std::vector<MyShape*> PaintAreaWidget::findShapesAtPoint(const QPoint& point) {
+    std::vector<MyShape*> result;
 
     // Ищем фигуры с конца (верхние слои)
     for (int i = shapesContainer.getCount() - 1; i >= 0; i--) {
-        Shape* shape = shapesContainer.getObject(i);
+        MyShape* shape = shapesContainer.getObject(i);
         if (shape && shape->hasPointIn(point)) {
             result.push_back(shape);
         }
@@ -301,7 +314,10 @@ std::vector<Shape*> PaintAreaWidget::findShapesAtPoint(const QPoint& point) {
 
 void PaintAreaWidget::clearSelection() {
     for (int i = 0; i < selection.getCount(); i++) {
-        selection.getObject(i)->setSelected(false);
+        MyShape* shape = selection.getObject(i);
+        if (shape) {
+            shape->setSelected(false);
+        }
     }
     selection.clear();
 }
@@ -323,8 +339,9 @@ void PaintAreaWidget::groupSelected() {
 
     // Собираем выделенные фигуры в группу
     for (int i = 0; i < selection.getCount(); i++) {
-        Shape* shape = selection.getObject(i);
+        MyShape* shape = selection.getObject(i);
         newGroup->addShape(shape);
+        shape->setParent(newGroup);
 
         // Удаляем указатели на фигуру из основного контейнера
         shapesContainer.removeElementPtr(shape);
@@ -352,25 +369,106 @@ void PaintAreaWidget::unGroupSelected() {
     if (selected_group) {
 
         // Получаем копию списка детей до удаления группы
-        std::vector<Shape*> children = selected_group->getShapes();
+        std::vector<MyShape*> children = selected_group->getShapes();
 
-        for (Shape* child : children) {
+        for (MyShape* child : children) {
             selected_group->removeShape(child); // Удаляем указатели
+        }
+
+        clearSelection();
+
+        std::vector<Observer*> observers_group = selected_group->getObservers();
+        for (size_t i = 0; i < observers_group.size(); i++) {
+            shapesContainer.removeElement(static_cast<Arrow*>(observers_group[i]));
         }
 
         // Удаляем группу из контейнера (это вызовет деструктор Group)
         shapesContainer.removeElement(selected_group);
 
-        // Добавляем детей обратно в основной контейнер
-        clearSelection();
-        for (Shape* child : children) {
+        for (MyShape* child : children) {
             shapesContainer.addObject(child);
             selection.addObject(child);
             child->setSelected(true);
+            child->setParent(nullptr);
         }
 
         selection.updateShapesRelativeFrame();
     }
 
     update();
+}
+
+void PaintAreaWidget::onSubjectChanged() {
+    update();
+}
+
+void PaintAreaWidget::onArrowTool() {
+    if (selection.getCount() == 2) {
+        MyShape* from = selection.getObject(0);
+        MyShape* to = selection.getObject(1);
+
+        // Базовая валидация
+        if (!from || !to || from == to) {
+            printf("Invalid arrow: null objects or self-reference\n");
+            return;
+        }
+
+        // Проверка на циклы
+        if (wouldCreateCycle(from, to)) {
+            QMessageBox::warning(
+                this,
+                "Cannot Create Arrow",
+                "Creating this arrow would create a cyclic dependency.\n"
+                "Please select different objects."
+                );
+            return;
+        }
+
+        Arrow* arrow = new Arrow(from, to, currentColor);
+        arrow->setWidgetBounds(this->rect());
+        shapesContainer.addObject(arrow);
+
+        clearSelection();
+        arrow->setSelected(true);
+        selection.addObject(arrow);
+
+        update();
+        printf("Arrow created between two objects\n");
+    }
+}
+
+bool PaintAreaWidget::wouldCreateCycle(MyShape* from, MyShape* to) {
+    // Проверяем, существует ли уже путь от to к from
+    // Если да, то добавление from->to создаст цикл
+
+    std::vector<MyShape*> visited;
+    std::vector<MyShape*> toProcess = {to};
+
+    while (!toProcess.empty()) {
+        MyShape* current = toProcess.back();
+        toProcess.pop_back();
+
+        // Если нашли путь to -> ... -> from, это цикл
+        if (current == from) {
+            return true;
+        }
+
+        // Пропускаем уже посещенные
+        if (std::find(visited.begin(), visited.end(), current) != visited.end()) {
+            continue;
+        }
+
+        visited.push_back(current);
+
+        // Ищем стрелки, исходящие из current
+        for (int i = 0; i < shapesContainer.getCount(); i++) {
+            if (Arrow* arrow = dynamic_cast<Arrow*>(shapesContainer.getObject(i))) {
+                if (arrow->getFrom() == current && arrow->getTo()) {
+                    toProcess.push_back(arrow->getTo());
+                }
+            }
+        }
+    }
+
+    return false;
 }

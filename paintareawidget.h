@@ -1,3 +1,4 @@
+
 #ifndef PAINTAREAWIDGET_H
 #define PAINTAREAWIDGET_H
 
@@ -10,6 +11,7 @@
 #include <Container.h>
 #include <ShapeFactory.h>
 #include <group.h>
+#include <mytreewidget.h>
 
 enum class Tool {
     Select,
@@ -19,7 +21,7 @@ enum class Tool {
     Line
 };
 
-class PaintAreaWidget : public QWidget
+class PaintAreaWidget : public QWidget, public Observer
 {
     Q_OBJECT
 
@@ -34,6 +36,10 @@ public:
     void loadShapes(std::string filename, ShapeFactory& factory);
     void groupSelected();
     void unGroupSelected();
+    void onSubjectChanged() override;
+    void onArrowTool();
+
+    MyTreeWidget* myTree;
 
 public slots:
     void deleteSelected();
@@ -49,7 +55,7 @@ protected:
     void resizeEvent(QResizeEvent *event) override;
 
 private:
-    Container<Shape> shapesContainer;
+    Container<MyShape> shapesContainer;
     Selection selection;
     bool ctrlPressed;
     Tool currentTool;
@@ -57,13 +63,14 @@ private:
 
     bool isCreatingShape;
     QPoint creationStartPoint;
-    Shape* tempShape;
+    MyShape* tempShape;
 
     bool isResizing;
     QPoint resizeStartPoint;
 
-    std::vector<Shape*> findShapesAtPoint(const QPoint& point);
+    std::vector<MyShape*> findShapesAtPoint(const QPoint& point);
     void clearSelection();
+    bool wouldCreateCycle(MyShape* from, MyShape* to);
 };
 
 #endif

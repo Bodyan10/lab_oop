@@ -9,27 +9,45 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    circle.cpp \
+    arrow.cpp \
+    ellipse.cpp \
+    group.cpp \
     line.cpp \
     main.cpp \
     mainwindow.cpp \
+    myshape.cpp \
+    myshapefactory.cpp \
+    mytreewidget.cpp \
+    observablemixin.cpp \
     paintareawidget.cpp \
     rectangle.cpp \
-    shape.cpp \
+    selection.cpp \
     triangle.cpp
 
 HEADERS += \
     Container.h \
-    circle.h \
+    Observer.h \
+    ShapeFactory.h \
+    arrow.h \
+    ellipse.h \
+    group.h \
     line.h \
     mainwindow.h \
+    myshape.h \
+    myshapefactory.h \
+    mytreewidget.h \
+    observablemixin.h \
     paintareawidget.h \
     rectangle.h \
-    shape.h \
+    selection.h \
     triangle.h
 
 FORMS += \
     mainwindow.ui
+
+CODECFORSRC = UTF-8
+QMAKE_CXXFLAGS += -finput-charset=UTF-8
+QMAKE_CXXFLAGS += -fexec-charset=UTF-8
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

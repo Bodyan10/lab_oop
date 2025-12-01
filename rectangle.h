@@ -1,9 +1,9 @@
 #ifndef RECTANGLE_H
 #define RECTANGLE_H
 
-#include "shape.h"
+#include "myshape.h"
 
-class Rectangle : public Shape {
+class Rectangle : public MyShape {
 public:
     Rectangle();
     Rectangle(QPoint coordinates, QSize size, QColor color, bool selected);
